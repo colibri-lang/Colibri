@@ -12,13 +12,13 @@ public protocol TextInputBuffer {
   func read() throws -> String
   
   /// Read 'count' characters from the buffer, starting from an offset.
-  func read(count: Int, from offset: Int) -> String
+  func read(count: Int, from offset: Int) throws -> String
   
 }
 
 extension String: TextInputBuffer {
   
-  public func read() throws -> String {
+  public func read() -> String {
     return self
   }
   
