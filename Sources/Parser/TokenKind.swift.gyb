@@ -1,0 +1,121 @@
+//
+//  TokenKind.swift.gyb
+//  Parser
+//
+//  Created by Aurélien on 03.03.20.
+//
+
+%{
+  declaration_keywords = ["`associatedtype`", "`class`", "`deinit`", "`enum`", "`extension`",
+                          "`fileprivate`", "`func`", "`import`", "`init`", "`inout`", "`internal`",
+                          "`let`", "`open`", "`operator`", "`private`", "`protocol`", "`public`",
+                          "`rethrows`", "`static`", "`struct`", "`subscript`", "`typealias`",
+                          "`var`"]
+  
+  statement_keywords = ["`break`", "`case`", "`continue`", "`default`", "`defer`", "`do`", "`else`",
+                        "`fallthrough`", "`for`", "`guard`", "`if`", "`in`", "`repeat`", "`return`",
+                        "`switch`", "`where`", "`while`"]
+  
+  expression_keywords = ["`as`", "`Any`", "`catch`", "`false`", "`is`", "`nil`", "`super`",
+                         "`self`", "`Self`", "`throw`", "`throws`", "`true`", "`try`"]
+  
+  pound_keywords = ["_available", "_colorLiteral", "_column", "_else", "_elseif", "_endif",
+                    "_error", "_file", "_fileLiteral", "_function", "_if", "_imageLiteral", "_line",
+                    "_selector", "_sourceLocation", "_warning"]
+  
+  other_keywords = ["associativity", "convenience", "dynamic", "didSet", "final", "get", "infix",
+                    "indirect", "lazy", "left", "mutating", "none", "nonmutating", "optional",
+                    "override", "postfix", "precedence", "prefix", "`Protocol`", "required",
+                    "right", "set", "`Type`", "unowned", "weak", "willset"]
+  
+  punctuation = ["leftParenthesis", "rightParenthesis", "leftBrace", "rightBrace", "leftBracket",
+                 "rightBracket", "dot", "comma", "colon", "semicolon", "assign", "at", "pound",
+                 "ampersand", "arrow", "backtick", "questionMark", "exclamationMark"]
+}%
+
+public enum TokenKind: UInt64, CustomStringConvertible {
+  
+  // MARK: Comments
+  
+  case comment
+  case multilineComment
+  
+  // MARK: Identifiers
+  
+  case identifier
+  
+  // MARK: Declaration keywords
+  
+% for keyword in declaration_keywords:
+  case ${keyword}
+% end
+  
+  // MARK: Statement keywords
+  
+% for keyword in statement_keywords:
+  case ${keyword}
+% end
+  
+  // MARK: Expression keywords
+
+  % for keyword in expression_keywords:
+    case ${keyword}
+  % end
+  
+  // MARK: Pattern keywords
+  
+  case underscore
+  
+  // MARK: Pound keywords
+
+% for keyword in pound_keywords:
+  case ${keyword}
+% end
+  
+  // MARK: Other keywords
+
+% for keyword in other_keywords:
+  case ${keyword}
+% end
+  
+  // MARK: Punctuation
+  
+% for keyword in punctuation:
+  case ${keyword}
+% end
+  
+  // MARK: Literals
+  
+  case integerLiteral
+  case floatLiteral
+  case stringLiteral
+  
+  // MARK: Operators
+  
+  case op
+  
+  public var description: String {
+    switch self {
+    case .comment:          return "comment"
+    case .multilineComment: return "multilineComment"
+    case .identifier:       return "identifier"
+  
+  % for keyword in declaration_keywords + statement_keywords + expression_keywords:
+    case .${keyword}:       return "${keyword.replace("`", "")}"
+  % end
+    
+    case .underscore:       return "_"
+      
+  % for keyword in pound_keywords + other_keywords + punctuation:
+    case .${keyword}:       return "${keyword}"
+  % end
+      
+    case .integerLiteral:   return "integerLiteral"
+    case .floatLiteral:     return "floatLiteral"
+    case .stringLiteral:    return "stringLiteral"
+    
+    case .op:               return "op"
+    }
+  }
+
+}

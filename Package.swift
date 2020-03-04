@@ -8,7 +8,7 @@ let package = Package(
   ],
   dependencies: [],
   targets: [
-    .target(name: "colibri", dependencies: []),
+    .target(name: "colibri", dependencies: [""]),
 
     .target(name: "ColibriLib", dependencies: ["Sema"]),
     .target(name: "AST", dependencies: []),
