@@ -16,8 +16,13 @@ public enum TokenKind: UInt64 {
   
   case identifier
   
+  // MARK: Pattern keywords
+  
+  case underscore
+  
   // MARK: Declaration keywords
   
+  // sourcery:begin: keyword
   case `associatedtype`
   case `class`
   case `deinit`
@@ -78,10 +83,6 @@ public enum TokenKind: UInt64 {
   case `true`
   case `try`
   
-  // MARK: Pattern keywords
-  
-  case underscore
-  
   // MARK: Pound keywords
 
   case _available
@@ -129,6 +130,7 @@ public enum TokenKind: UInt64 {
   case unowned
   case weak
   case willset
+  // sourcery:end
   
   // MARK: Punctuation
   
@@ -144,11 +146,8 @@ public enum TokenKind: UInt64 {
   case assign
   case at
   case pound
-  case ampersand
   case arrow
   case backtick
-  case questionMark
-  case exclamationMark
 
   // MARK: Delimiters
   

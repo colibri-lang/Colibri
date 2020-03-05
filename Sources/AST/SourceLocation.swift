@@ -5,6 +5,8 @@
 //  Created by Aurélien on 04.03.20.
 //
 
+import Utils
+
 /// A reference to a source of code (a TextInputBuffer).
 public class SourceReference {
   

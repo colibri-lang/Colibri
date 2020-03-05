@@ -5,6 +5,7 @@
 //  Created by Aurélien on 03.03.20.
 //
 
+import AST
 import Utils
 
 /// A lexical token in a Colibri source.

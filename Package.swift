@@ -11,7 +11,7 @@ let package = Package(
     .target(name: "colibri", dependencies: []),
 
     .target(name: "ColibriLib", dependencies: ["Sema"]),
-    .target(name: "AST", dependencies: []),
+    .target(name: "AST", dependencies: ["Utils"]),
     .target(name: "Parser", dependencies: ["AST", "Utils"]),
     .target(name: "Sema", dependencies: ["AST"]),
 
