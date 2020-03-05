@@ -1,0 +1,15 @@
+extension TokenKind: CustomStringConvertible {
+
+  {{ type.TokenKind.accessLevel }} var description: String {
+    switch self {
+    {% for case in type.TokenKind.cases %}
+      {% if case.name|contains:"Self" or case.name|contains:"self" or case.name|contains:"init"  %}
+      case .{{ case.name }}: return "{{ case.name|replace:"`","" }}"
+      {% else %}
+      case .{{ case.name|replace:"`","" }}: return "{{ case.name|replace:"`","" }}"
+      {% endif %}
+    {% endfor %}
+    }
+  }
+
+}
