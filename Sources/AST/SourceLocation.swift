@@ -5,17 +5,19 @@
 //  Created by Aurélien on 04.03.20.
 //
 
-import Utils
-
-/// A reference to a source of code (a TextInputBuffer).
-public class SourceReference {
+/// A translation unit.
+///
+/// A translation unit is a reference to a source of code that needs to be translated by the
+/// compiler.
+public class TranslationUnit {
   
-  /// The name of the source.
+  /// The name of the unit.
   public let name: String
-  /// The actual text of the source.
-  public let source: TextInputBuffer
   
-  public init(name: String, source: TextInputBuffer) {
+  /// The actual source code of the translation unit.
+  public let source: String
+  
+  public init(name: String, source: String) {
     self.name = name
     self.source = source
   }
@@ -26,16 +28,19 @@ public class SourceReference {
 public struct SourceLocation {
   
   /// The source the location is referring to.
-  public let sourceRef: SourceReference
+  public let translationUnit: TranslationUnit
+  
   /// The line number of the location in the source (indexed starting from 1).
   public var line: Int
+  
   /// The column number of the location in the source (indexed starting from 1).
   public var column: Int
+  
   /// The character offset of the location in the source (indexed starting from 0).
   public var offset: Int
   
-  public init(sourceRef: SourceReference, line: Int = 1, column: Int = 1, offset: Int = 0) {
-    self.sourceRef = sourceRef
+  public init(translationUnit: TranslationUnit, line: Int = 1, column: Int = 1, offset: Int = 0) {
+    self.translationUnit = translationUnit
     self.line = line
     self.column = column
     self.offset = offset
@@ -46,11 +51,11 @@ public struct SourceLocation {
 extension SourceLocation: Hashable {
 
   public static func == (lhs: SourceLocation, rhs: SourceLocation) -> Bool {
-    return lhs.sourceRef === rhs.sourceRef && lhs.offset == rhs.offset
+    return lhs.translationUnit === rhs.translationUnit && lhs.offset == rhs.offset
   }
   
   public func hash(into hasher: inout Hasher) {
-    hasher.combine(ObjectIdentifier(sourceRef))
+    hasher.combine(ObjectIdentifier(translationUnit))
     hasher.combine(offset)
   }
   
@@ -72,13 +77,13 @@ extension SourceLocation: CustomStringConvertible {
   
 }
 
-/// A range between two location in a source.
+/// A range between two locations in a source.
 public typealias SourceRange = Range<SourceLocation>
 
 extension SourceRange {
   
-  public var sourceRef: SourceReference {
-    return lowerBound.sourceRef
+  public var translationUnit: TranslationUnit {
+    return lowerBound.translationUnit
   }
   
 }

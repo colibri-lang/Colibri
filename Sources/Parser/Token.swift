@@ -1,10 +1,3 @@
-//
-//  Token.swift
-//  Parser
-//
-//  Created by Aurélien on 03.03.20.
-//
-
 import AST
 import Utils
 
@@ -15,12 +8,13 @@ public struct Token {
   
   /// The kind of the token.
   public let kind: TokenKind
+
   /// The range of characters covered by the token in the source.
   public let range: SourceRange
   
   /// The text the token corresponds to in the source.
   public var value: String? {
-    return try? range.sourceRef.source.read(
+    return try? range.translationUnit.source.read(
       count: range.upperBound.offset - range.lowerBound.offset,
       from: range.lowerBound.offset
     )
