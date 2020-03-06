@@ -40,8 +40,8 @@ class DeclParserTests: XCTestCase {
   }
 
   private func tokenize(_ buffer: String) -> [Token] {
-    let source = SourceReference(name: "<test>", source: buffer)
-    return Array(try! Lexer(sourceRef: source))
+    let source = TranslationUnit(name: "<test>", source: buffer)
+    return Array(try! Lexer(translationUnit: source))
   }
 
   private func check<Element>(_ parseResult: ParseResult<Element>, assertions: (Element) -> Void) {

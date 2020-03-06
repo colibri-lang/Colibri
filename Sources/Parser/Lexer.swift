@@ -1,20 +1,13 @@
-//
-//  Lexer.swift
-//  Parser
-//
-//  Created by Aurélien on 03.03.20.
-//
-
-import Foundation
-
 import AST
 
 public struct Lexer {
   
   /// The stream of characters the lexer must process.
   internal var charStream: String.UnicodeScalarView
+
   /// The position of the lexer in the character stream.
   internal var charIndex: String.UnicodeScalarView.Index
+
   /// A boolean value indicating whether all characters have been consumed from the stream.
   internal var depleted: Bool
   
@@ -28,10 +21,10 @@ public struct Lexer {
       : nil
   }
   
-  public init(sourceRef: SourceReference) throws {
-    charStream = try sourceRef.source.read().unicodeScalars
+  public init(translationUnit: TranslationUnit) throws {
+    charStream = translationUnit.source.unicodeScalars
     charIndex = charStream.startIndex
-    sourceLocation = SourceLocation(sourceRef: sourceRef)
+    sourceLocation = SourceLocation(translationUnit: translationUnit)
     depleted = false
   }
   

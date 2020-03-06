@@ -1,10 +1,3 @@
-//
-//  Token.swift
-//  Parser
-//
-//  Created by Aurélien on 03.03.20.
-//
-
 import AST
 import Utils
 
@@ -21,10 +14,10 @@ public struct Token {
   
   /// The text the token corresponds to in the source.
   public var value: String? {
-    return try? range.sourceRef.source.read(
-      count: range.upperBound.offset - range.lowerBound.offset,
-      from: range.lowerBound.offset
-    )
+    return String(
+      range.translationUnit.source
+        .dropFirst(range.lowerBound.offset)
+        .prefix(range.upperBound.offset - range.lowerBound.offset))
   }
 
   /// Whether this token is an explicit statement delimiter (i.e. `;` or `EOF`).

@@ -9,10 +9,9 @@ let package = Package(
   dependencies: [],
   targets: [
     .target(name: "colibri", dependencies: []),
-
     .target(name: "ColibriLib", dependencies: ["Sema"]),
-    .target(name: "AST", dependencies: ["Utils"]),
-    .target(name: "Parser", dependencies: ["AST", "Utils"]),
+    .target(name: "AST", dependencies: []),
+    .target(name: "Parser", dependencies: ["AST"]),
     .target(name: "Sema", dependencies: ["AST"]),
 
     .target(name: "AssertThat", dependencies: []),

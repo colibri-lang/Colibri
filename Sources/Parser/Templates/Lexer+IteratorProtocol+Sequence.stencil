@@ -98,7 +98,7 @@ extension Lexer: IteratorProtocol, Sequence {
       // Keywords.
       case "_": tokenKind = .underscore
       {% for case in type.TokenKind.cases|annotated:"keyword" %}
-        {% if case.name|contains:"init" or case.name|contains:"self" or case.name|contains:"Self" %}
+      {% if case.name|contains:"init" or case.name|contains:"self" or case.name|contains:"Self" %}
       case "{{ case.name|replace:"`","" }}": tokenKind = .{{ case.name }}
       {% else %}
       case "{{ case.name|replace:"`",""|replace:"_","#" }}": tokenKind = .{{ case.name|replace:"`","" }}
