@@ -13,10 +13,11 @@ public struct Token {
   public let range: SourceRange
   
   /// The text the token corresponds to in the source.
-  public var value: String? {
-    return try? range.translationUnit.source.read(
-      count: range.upperBound.offset - range.lowerBound.offset,
-      from: range.lowerBound.offset
+  public var value: String {
+    return String(
+      range.translationUnit.source
+        .dropFirst(range.lowerBound.offset)
+        .prefix(range.upperBound.offset - range.lowerBound.offset)
     )
   }
   
