@@ -69,10 +69,10 @@ public final class DeclModifier: SourceRepresentable {
 public final class PatternBindingDecl {
 
   /// The access control modifiers attached to this declaration.
-  public let accessModifiers: [AccessModifier]
+  public var accessModifiers: [AccessModifier]
 
   /// The declaration modifiers attached to this declaration.
-  public let declModifiers: [DeclModifier]
+  public var declModifiers: [DeclModifier]
 
   /// The source range of the `let` or `var` keyword.
   public let letVarKeywordRange: SourceRange
@@ -93,8 +93,8 @@ public final class PatternBindingDecl {
   }
 
   public init(
-    accessModifiers: [AccessModifier],
-    declModifiers: [DeclModifier],
+    accessModifiers: [AccessModifier] = [],
+    declModifiers: [DeclModifier] = [],
     letVarKeywordRange: SourceRange,
     pattern: Pattern,
     initializer: Expr? = nil

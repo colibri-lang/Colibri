@@ -31,11 +31,23 @@ public class DiagnosticTemplate: CustomStringConvertible {
   /// - Parameters:
   ///   - range: The source range at which the error occured.
   ///   - arguments: The arguments of the diagnostic description.
-  public func instantiate(at range: SourceRange, with arguments: [String] = []) -> Diagnostic {
+  public func instantiate(
+    at range: SourceRange? = nil,
+    with arguments: [String] = []
+  ) -> Diagnostic {
     return Diagnostic(
       severity: severity,
       description: String(format: description, arguments: arguments),
       range: range)
+  }
+
+  /// Instantiates this template.
+  ///
+  /// - Parameters:
+  ///   - range: The source range at which the error occured.
+  ///   - arguments: The arguments of the diagnostic description.
+  public func instantiate(at range: SourceRange? = nil, with arguments: String...) -> Diagnostic {
+    return instantiate(at: range, with: arguments)
   }
 
 }
@@ -50,9 +62,9 @@ public struct Diagnostic: Error, CustomStringConvertible {
   public let description: String
 
   /// The source range at which the error reported by this diagnostic occured.
-  public let range: SourceRange
+  public let range: SourceRange?
 
-  public init(severity: Severity, description: String, range: SourceRange) {
+  public init(severity: Severity, description: String, range: SourceRange?) {
     self.severity = severity
     self.description = description
     self.range = range

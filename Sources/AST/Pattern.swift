@@ -54,3 +54,13 @@ public final class TuplePattern: Pattern {
   }
 
 }
+
+public struct MissingPattern: Pattern {
+
+  public let range: SourceRange
+
+  public init(range: SourceRange) {
+    self.range = range
+  }
+
+}

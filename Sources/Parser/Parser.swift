@@ -9,7 +9,7 @@ public protocol Parser {
   ///
   /// - Parameter stream: The stream to parse
   /// - Returns:
-  ///     Either pair containing the parsed element and the remainder of the stream, or a parse
+  ///     Either a pair containing the parsed element and the remainder of the stream, or a parse
   ///     error if the element could not be parsed.
   func parse(_ stream: ArraySlice<Token>) -> ParseResult<Element>
 
@@ -17,7 +17,7 @@ public protocol Parser {
 
 extension Parser {
 
-  func parse(_ stream: [Token]) -> ParseResult<Element> {
+  public func parse(_ stream: [Token]) -> ParseResult<Element> {
     parse(stream.suffix(from: 0))
   }
 
@@ -27,9 +27,28 @@ extension Parser {
 public enum ParseResult<Element> {
 
   /// A parse success.
-  case success(Element, ArraySlice<Token>)
+  case success(Element, ArraySlice<Token>, [Diagnostic])
 
   /// A parse failure.
-  case failure(Diagnostic)
+  case failure([Diagnostic])
+
+  /// The diagnostics for the issues that occured while parsing (or failing to parse) the element.
+  public var diagnostics: [Diagnostic] {
+    switch self {
+    case .success(_, _, let diags):
+      return diags
+    case .failure(let diags):
+      return diags
+    }
+  }
+
+}
+
+extension ArraySlice where Element == Token {
+
+  /// Returns this token stream without its leading newlines.
+  var trimmed: ArraySlice {
+    drop(while: { $0.kind == .newline })
+  }
 
 }
