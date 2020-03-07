@@ -15,6 +15,9 @@ let package = Package(
     .target(name: "Parser", dependencies: ["AST", "Utils"]),
     .target(name: "Sema", dependencies: ["AST"]),
 
+    .target(name: "AssertThat", dependencies: []),
     .target(name: "Utils", dependencies: []),
+
+    .testTarget(name: "ParserTests", dependencies: ["AssertThat", "Parser"]),
   ]
 )
