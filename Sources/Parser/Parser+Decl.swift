@@ -40,7 +40,7 @@ public struct PatternBindingDeclParser: Parser {
     return .success((decl: decl, vars: []), remainder, diagnostics)
   }
 
-  static let get = PatternBindingDeclParser()
+  public static let get = PatternBindingDeclParser()
 
 }
 
@@ -60,16 +60,6 @@ public struct PatternParser: Parser {
     }
   }
 
-  static let get = PatternParser()
-
-}
-
-struct ParseAttempt<Element> {
-
-  let element: Element
-
-  let stream: ArraySlice<Token>
-
-  let diagnostics: [Diagnostic]
+  public static let get = PatternParser()
 
 }
