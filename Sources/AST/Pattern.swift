@@ -81,6 +81,17 @@ public final class TuplePattern: Pattern {
 
 }
 
+/// A pattern that matches an arbitrary value, but does not bind it to a name.
+public final class WildcardPattern: Pattern {
+
+  public let range: SourceRange?
+
+  public init(range: SourceRange?) {
+    self.range = range
+  }
+
+}
+
 /// An invalid pattern.
 ///
 /// This type is used to represent ill-formed ASTs.
