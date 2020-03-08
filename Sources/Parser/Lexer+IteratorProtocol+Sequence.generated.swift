@@ -92,8 +92,8 @@ extension Lexer: IteratorProtocol, Sequence {
     }
 
     // Identifiers and keywords.
-    if isAlphanumericOrUScore(char) {
-      let characters = String(consume(while: isAlphanumericOrUScore))
+    if isAlphanumericOrUnderscore(char) {
+      let characters = String(consume(while: isAlphanumericOrUnderscore))
       let tokenKind: TokenKind
 
       switch characters {
@@ -268,8 +268,8 @@ private func isDigit(_ char: UnicodeScalar) -> Bool {
 }
 
 /// Check whether a character is alphanumeric or an underscore.
-private func isAlphanumericOrUScore(_ char: UnicodeScalar) -> Bool {
-  return CharacterSet.alphanumerics.contains(char)
+private func isAlphanumericOrUnderscore(_ char: UnicodeScalar) -> Bool {
+  return char == "_" || CharacterSet.alphanumerics.contains(char)
 }
 
 /// Check whether a character is an operator head.

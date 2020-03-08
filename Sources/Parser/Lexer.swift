@@ -21,7 +21,7 @@ public struct Lexer {
       : nil
   }
   
-  public init(translationUnit: TranslationUnit) throws {
+  public init(translationUnit: TranslationUnit) {
     charStream = translationUnit.source.unicodeScalars
     charIndex = charStream.startIndex
     sourceLocation = SourceLocation(translationUnit: translationUnit)
