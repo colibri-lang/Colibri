@@ -6,7 +6,7 @@ import Parser
 
 class PatternParserTests: XCTestCase {
 
-  func testParsePattern() {
+  func testParseNamedPattern() {
     let stream = tokenize("foo")
 
     check(PatternParser.get.parse(stream)) { pattern in
