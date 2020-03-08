@@ -4,7 +4,7 @@ import XCTest
 import AST
 import Parser
 
-class DeclParserTests: XCTestCase {
+class PatternParserTests: XCTestCase {
 
   func testParsePattern() {
     let stream = tokenize("foo")
