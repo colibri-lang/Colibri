@@ -19,3 +19,85 @@ public final class UnresolvedDeclRefExpr: Expr {
   }
 
 }
+
+/// A `nil` literal.
+public final class NilLiteralExpr: Expr {
+
+  public let range: SourceRange?
+
+  public init(range: SourceRange?) {
+    self.range = range
+  }
+
+}
+
+/// A boolean literal.
+public final class BooleanLiteralExpr: Expr {
+
+  /// The literal's value.
+  public let value: Bool
+
+  public let range: SourceRange?
+
+  public init(value: Bool, range: SourceRange?) {
+    self.value = value
+    self.range = range
+  }
+
+}
+
+/// An integer literal.
+public final class IntegerLiteralExpr: Expr {
+
+  /// The literal's value.
+  public let value: Int
+
+  public let range: SourceRange?
+
+  public init(value: Int, range: SourceRange?) {
+    self.value = value
+    self.range = range
+  }
+
+}
+
+/// A float literal.
+public final class FloatLiteralExpr: Expr {
+
+  /// The literal's value.
+  public let value: Double
+
+  public let range: SourceRange?
+
+  public init(value: Double, range: SourceRange?) {
+    self.value = value
+    self.range = range
+  }
+
+}
+
+/// A string literal.
+public final class StringLiteralExpr: Expr {
+
+  /// The literal's value.
+  public let value: String
+
+  public let range: SourceRange?
+
+  public init(value: String, range: SourceRange?) {
+    self.value = value
+    self.range = range
+  }
+
+}
+
+/// A magic identifier (e.g. `#file`) which expends out to a literal during SIL generation.
+public final class MagicIdentifierLiteralExpr: Expr {
+
+  public let range: SourceRange?
+
+  public init(range: SourceRange?) {
+    self.range = range
+  }
+
+}
