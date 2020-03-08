@@ -2,6 +2,8 @@
 public protocol SourceRepresentable {
 
   /// The source range corresponding to this node.
-  var range: SourceRange { get }
+  ///
+  /// - Note: This property might be `nil` if the node is implicit.
+  var range: SourceRange? { get }
 
 }

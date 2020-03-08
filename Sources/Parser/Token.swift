@@ -15,6 +15,7 @@ public struct Token {
   
   /// The kind of the token.
   public let kind: TokenKind
+
   /// The range of characters covered by the token in the source.
   public let range: SourceRange
   
@@ -24,6 +25,16 @@ public struct Token {
       count: range.upperBound.offset - range.lowerBound.offset,
       from: range.lowerBound.offset
     )
+  }
+
+  /// Whether this token is an explicit statement delimiter (i.e. `;` or `EOF`).
+  public var isExplicitStatementDelimiter: Bool {
+    (kind == .semicolon) || (kind == .eof)
+  }
+
+  /// Whether this token is either an explicit statement delimiter or a newline.
+  public var isStatementDelimiter: Bool {
+    kind == .newline || isExplicitStatementDelimiter
   }
   
   public init(kind: TokenKind, range: SourceRange) {

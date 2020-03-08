@@ -11,8 +11,11 @@ public final class TypedPattern: Pattern {
   /// The type location annotating this pattern.
   public let annotation: TypeLocation
 
-  public var range: SourceRange {
-    return subpattern.range.lowerBound ..< annotation.range.upperBound
+  public var range: SourceRange? {
+    guard let lower = subpattern.range ?? annotation.range
+      else { return nil }
+    let upper = annotation.range ?? lower
+    return lower.lowerBound ..< upper.upperBound
   }
 
   public init(subpattern: Pattern, annotation: TypeLocation) {
@@ -31,7 +34,7 @@ public final class NamedPattern: Pattern {
   /// The name of this patterm.
   public let name: String
 
-  public let range: SourceRange
+  public let range: SourceRange?
 
   public init(name: String, range: SourceRange) {
     self.name = name
@@ -46,20 +49,46 @@ public final class TuplePattern: Pattern {
   /// The elements of this pattern.
   public var elements: [Pattern]
 
-  public let range: SourceRange
+  /// The source range of the left parenthesis token.
+  public let leftParenthesisRange: SourceRange?
 
-  public init(elements: [Pattern], range: SourceRange) {
+  /// The source range of the right parenthesis token.
+  public let rightParenthesisRange: SourceRange?
+
+  public var range: SourceRange? {
+    if let lower = leftParenthesisRange, let upper = rightParenthesisRange {
+      return lower.lowerBound ..< upper.upperBound
+    }
+
+    let elementsRange = SourceRange.union(of: elements.compactMap({ $0.range }))
+    let lower = leftParenthesisRange ?? elementsRange ?? rightParenthesisRange
+    let upper = rightParenthesisRange ?? elementsRange ?? leftParenthesisRange
+
+    return lower != nil
+      ? lower!.lowerBound ..< upper!.upperBound
+      : nil
+  }
+
+  public init(
+    elements: [Pattern],
+    leftParenthesisRange: SourceRange? = nil,
+    rightParenthesisRange: SourceRange? = nil)
+  {
     self.elements = elements
-    self.range = range
+    self.leftParenthesisRange = leftParenthesisRange
+    self.rightParenthesisRange = rightParenthesisRange
   }
 
 }
 
-public struct MissingPattern: Pattern {
+/// An invalid pattern.
+///
+/// This type is used to represent ill-formed ASTs.
+public struct InvalidPattern: Pattern {
 
-  public let range: SourceRange
+  public let range: SourceRange?
 
-  public init(range: SourceRange) {
+  public init(range: SourceRange?) {
     self.range = range
   }
 

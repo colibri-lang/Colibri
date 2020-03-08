@@ -15,9 +15,9 @@ public final class AccessModifier: SourceRepresentable {
   /// The access control level designated by this node.
   public let level: Level
 
-  public let range: SourceRange
+  public let range: SourceRange?
 
-  public init(level: Level, range: SourceRange) {
+  public init(level: Level, range: SourceRange?) {
     self.level = level
     self.range = range
   }
@@ -48,9 +48,9 @@ public final class DeclModifier: SourceRepresentable {
   /// The kind of this declaration modifier.
   public let kind: Kind
 
-  public let range: SourceRange
+  public let range: SourceRange?
 
-  public init(kind: Kind, range: SourceRange) {
+  public init(kind: Kind, range: SourceRange?) {
     self.kind = kind
     self.range = range
   }
@@ -68,12 +68,6 @@ public final class DeclModifier: SourceRepresentable {
 /// ```
 public final class PatternBindingDecl {
 
-  /// The access control modifiers attached to this declaration.
-  public var accessModifiers: [AccessModifier]
-
-  /// The declaration modifiers attached to this declaration.
-  public var declModifiers: [DeclModifier]
-
   /// The source range of the `let` or `var` keyword.
   public let letVarKeywordRange: SourceRange
 
@@ -83,24 +77,17 @@ public final class PatternBindingDecl {
   /// The initializer for the variables declared by the pattern.
   public let initializer: Expr?
 
-  public var range: SourceRange {
-    let start = [
-      accessModifiers.map({ $0.range.lowerBound }),
-      declModifiers.map({ $0.range.lowerBound }),
-    ].joined().min() ?? letVarKeywordRange.lowerBound
-
-    return start ..< start
+  public var range: SourceRange? {
+    let start = letVarKeywordRange.lowerBound
+    let end = pattern.range?.upperBound ?? letVarKeywordRange.upperBound
+    return start ..< end
   }
 
   public init(
-    accessModifiers: [AccessModifier] = [],
-    declModifiers: [DeclModifier] = [],
     letVarKeywordRange: SourceRange,
     pattern: Pattern,
     initializer: Expr? = nil
   ) {
-    self.accessModifiers = accessModifiers
-    self.declModifiers = declModifiers
     self.letVarKeywordRange = letVarKeywordRange
     self.pattern = pattern
     self.initializer = initializer
@@ -117,9 +104,9 @@ public final class VarDecl: SourceRepresentable {
   /// The pattern from which this variable declaration is implied.
   public var pattern: Pattern?
 
-  public let range: SourceRange
+  public let range: SourceRange?
 
-  public init(name: String, range: SourceRange) {
+  public init(name: String, range: SourceRange?) {
     self.name = name
     self.range = range
   }

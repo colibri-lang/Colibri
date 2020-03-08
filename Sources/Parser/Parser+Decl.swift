@@ -4,7 +4,7 @@ public struct PatternBindingDeclParser: Parser {
 
   public typealias Element = (decl: PatternBindingDecl, vars: [VarDecl])
 
-  public func parse(_ stream: ArraySlice<Token>) -> ParseResult<Element> {
+  public func parse(_ stream: TokenStream) -> ParseResult<Element> {
     // Parses the `let` or `var` keyword that introduces the pattern.
     let startToken: Token
     switch stream.first?.kind {
@@ -31,7 +31,7 @@ public struct PatternBindingDeclParser: Parser {
     case .failure(let diags):
       let range = remainder.first?.range
         ?? startToken.range.upperBound ..< startToken.range.upperBound
-      pattern = MissingPattern(range: range)
+      pattern = InvalidPattern(range: range)
       diagnostics.append(contentsOf: diags)
     }
 
@@ -48,11 +48,32 @@ public struct PatternParser: Parser {
 
   public typealias Element = Pattern
 
-  public func parse(_ stream: ArraySlice<Token>) -> ParseResult<Pattern> {
+  public func parse(_ stream: TokenStream) -> ParseResult<Pattern> {
     switch stream.first?.kind {
     case .identifier:
       let pattern = NamedPattern(name: stream.first!.value!, range: stream.first!.range)
       return .success(pattern, stream.dropFirst(), [])
+
+    case .leftParenthesis:
+      let (elts, rem, diags) = parseList(stream.dropFirst(), terminator: .rightParenthesis)
+
+      let leftParenthesisToken = stream.first
+      let rightParenthesisToken: Token?
+      let remainder: TokenStream
+
+      if rem.first?.kind == .rightParenthesis {
+        rightParenthesisToken = rem.first!
+        remainder = rem.dropFirst()
+      } else {
+        rightParenthesisToken = nil
+        remainder = rem
+      }
+
+      let pattern = TuplePattern(
+        elements: elts,
+        leftParenthesisRange: leftParenthesisToken?.range,
+        rightParenthesisRange: rightParenthesisToken?.range)
+      return .success(pattern, remainder, diags)
 
     default:
       let diagnostics = [expectedError.instantiate(at: stream.first?.range, with: "pattern")]
