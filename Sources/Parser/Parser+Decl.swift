@@ -54,6 +54,10 @@ public struct PatternParser: Parser {
       let pattern = NamedPattern(name: stream.first!.value!, range: stream.first!.range)
       return .success(pattern, stream.dropFirst(), [])
 
+    case .underscore:
+      let pattern = WildcardPattern(range: stream.first!.range)
+      return .success(pattern, stream.dropFirst(), [])
+
     case .leftParenthesis:
       let (elts, rem, diags) = parseList(stream.dropFirst(), terminator: .rightParenthesis)
 

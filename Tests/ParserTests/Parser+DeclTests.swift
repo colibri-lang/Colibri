@@ -39,6 +39,16 @@ class DeclParserTests: XCTestCase {
     }
   }
 
+  func testWildcardPattern() {
+    let stream = tokenize("_")
+
+    check(PatternParser.get.parse(stream)) { pattern in
+      assertThat(pattern, .isInstance(of: WildcardPattern.self))
+      assertThat(pattern.range, .not(.isNil))
+      assertThat(pattern.range, .equals(stream.first?.range))
+    }
+  }
+
   private func tokenize(_ buffer: String) -> [Token] {
     let source = TranslationUnit(name: "<test>", source: buffer)
     return Array(try! Lexer(translationUnit: source))
