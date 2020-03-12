@@ -4,43 +4,43 @@ public struct PrimaryExprParser: Parser {
 
   public typealias Element = Expr
 
-  public func parse(_ stream: TokenStream) -> ParseResult<Expr> {
-    switch stream.first?.kind {
+  public func parse(stream: inout TokenStream, diagnostics: inout [Diagnostic]) -> Expr? {
+    switch stream.peek().kind {
     case .identifier, .self, .op:
-      let expr = UnresolvedDeclRefExpr(name: stream.first!.value!, range: stream.first!.range)
-      return .success(expr, stream.dropFirst(), [])
+      let identTok = stream.consume()
+      return UnresolvedDeclRefExpr(name: identTok.value!, range: identTok.range)
 
     case .nil:
-      let expr = NilLiteralExpr(range: stream.first!.range)
-      return .success(expr, stream.dropFirst(), [])
+      let litTok = stream.consume()
+      return NilLiteralExpr(range: litTok.range)
 
     case .true, .false:
-      let value = stream.first!.kind == .true
-      let expr = BooleanLiteralExpr(value: value, range: stream.first!.range)
-      return .success(expr, stream.dropFirst(), [])
+      let litTok = stream.consume()
+      let litVal = litTok.kind == .true
+      return BooleanLiteralExpr(value: litVal, range: litTok.range)
 
     case .integerLiteral:
-      let value = Int(stream.first!.value!)!
-      let expr = IntegerLiteralExpr(value: value, range: stream.first!.range)
-      return .success(expr, stream.dropFirst(), [])
+      let litTok = stream.consume()
+      let litVal = litTok.value.flatMap(Int.init)!
+      return IntegerLiteralExpr(value: litVal, range: litTok.range)
 
     case .floatLiteral:
-      let value = Double(stream.first!.value!)!
-      let expr = FloatLiteralExpr(value: value, range: stream.first!.range)
-      return .success(expr, stream.dropFirst(), [])
+      let litTok = stream.consume()
+      let litVal = litTok.value.flatMap(Double.init)!
+      return FloatLiteralExpr(value: litVal, range: litTok.range)
 
     case .stringLiteral:
-      let value = stream.first!.value!
-      let expr = StringLiteralExpr(value: value, range: stream.first!.range)
-      return .success(expr, stream.dropFirst(), [])
+      let litTok = stream.consume()
+      let litVal = litTok.value!
+      return StringLiteralExpr(value: litVal, range: litTok.range)
 
     case ._file, ._line, ._column, ._function:
-      let expr = MagicIdentifierLiteralExpr(range: stream.first!.range)
-      return .success(expr, stream.dropFirst(), [])
+      let litTok = stream.consume()
+      return MagicIdentifierLiteralExpr(range: litTok.range)
 
     default:
-      let diagnostics = [expectedError.instantiate(at: stream.first?.range, with: "expression")]
-      return .failure(diagnostics)
+      diagnostics.append(expectedError.instantiate(at: stream.peek().range, with: "expression"))
+      return nil
     }
   }
 

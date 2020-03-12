@@ -2,44 +2,42 @@ import AST
 
 public struct PatternBindingDeclParser: Parser {
 
-  public typealias Element = (decl: PatternBindingDecl, vars: [VarDecl])
+  public typealias Element = PatternBindingDecl
 
-  public func parse(_ stream: TokenStream) -> ParseResult<Element> {
-    // Parses the `let` or `var` keyword that introduces the pattern.
-    let startToken: Token
-    switch stream.first?.kind {
-    case .let, .var:
-      startToken = stream.first!
-
-    default:
-      let diagnostics = [expectedError.instantiate(at: stream.first?.range, with: "let or var")]
-      return .failure(diagnostics)
+  public func parse(
+    stream: inout TokenStream,
+    diagnostics: inout [Diagnostic]
+  ) -> PatternBindingDecl? {
+    // Parses the `let` or `var` keyword at the beginning of the declaration.
+    guard let letOrVarTok = stream.consume([.let, .var]) else {
+      diagnostics.append(expectedError.instantiate(at: stream.peek().range, with: "let"))
+      return nil
     }
 
-    // Commit to parse a pattern binding declaration from this point.
-    var remainder = stream.dropFirst()
-    var diagnostics: [Diagnostic] = []
-
-    // Parses a pattern.
-    let pattern: Pattern
-    switch PatternParser.get.parse(remainder.trimmed) {
-    case .success(let pat, let rem, let diags):
-      pattern = pat
-      remainder = rem
-      diagnostics.append(contentsOf: diags)
-
-    case .failure(let diags):
-      let range = remainder.first?.range
-        ?? startToken.range.upperBound ..< startToken.range.upperBound
-      pattern = InvalidPattern(range: range)
-      diagnostics.append(contentsOf: diags)
-    }
+    let pattern = PatternParser.get.parse(stream: &stream, diagnostics: &diagnostics)
+      ?? InvalidPattern(range: stream.peek().range)
 
     // Create the declaration.
-    let decl = PatternBindingDecl(letVarKeywordRange: startToken.range, pattern: pattern)
-    return .success((decl: decl, vars: []), remainder, diagnostics)
+    return PatternBindingDecl(letVarKeywordRange: letOrVarTok.range, pattern: pattern)
   }
 
   public static let get = PatternBindingDeclParser()
 
 }
+
+///// A parser for function declarations.
+//public struct FuncDeclParser: Parser {
+//
+//  public typealias Element = FuncDecl
+//
+//  public func parse(_ stream: TokenStream) -> ParseResult<FuncDecl> {
+//    // All function declarations must start with `func`.
+//    guard let funcKeyword = stream.first, funcKeyword.kind == .func else {
+//
+//    }
+//
+//  }
+//
+//  public static let get = FuncDeclParser()
+//
+//}

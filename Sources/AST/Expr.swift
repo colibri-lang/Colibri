@@ -101,3 +101,14 @@ public final class MagicIdentifierLiteralExpr: Expr {
   }
 
 }
+
+/// Represets a semantically erroneaus sub-expression.
+public final class ErrorExpr: Expr {
+
+  public let range: SourceRange?
+
+  public init(range: SourceRange?) {
+    self.range = range
+  }
+
+}

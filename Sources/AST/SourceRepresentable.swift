@@ -7,3 +7,36 @@ public protocol SourceRepresentable {
   var range: SourceRange? { get }
 
 }
+
+/// A node delimited by parentheses.
+public protocol ParenthesizedNode: SourceRepresentable {
+
+  /// The source range of the left parenthesis token.
+  var leftParenthesisRange: SourceRange? { get }
+
+  /// The source range of the right parenthesis token.
+  var rightParenthesisRange: SourceRange? { get }
+
+  /// The range of the content the node's content.
+  var contentRange: SourceRange? { get }
+
+  var range: SourceRange? { get }
+
+}
+
+extension ParenthesizedNode {
+
+  public var range: SourceRange? {
+     if let lower = leftParenthesisRange, let upper = rightParenthesisRange {
+       return lower.lowerBound ..< upper.upperBound
+     }
+
+     let lower = leftParenthesisRange ?? contentRange ?? rightParenthesisRange
+     let upper = rightParenthesisRange ?? contentRange ?? leftParenthesisRange
+
+     return lower != nil
+       ? lower!.lowerBound ..< upper!.upperBound
+       : nil
+   }
+
+}

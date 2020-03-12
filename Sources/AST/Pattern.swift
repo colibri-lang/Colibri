@@ -44,29 +44,17 @@ public final class NamedPattern: Pattern {
 }
 
 /// A pattern that consists of a tuple of patterns.
-public final class TuplePattern: Pattern {
+public final class TuplePattern: Pattern, ParenthesizedNode {
 
   /// The elements of this pattern.
   public var elements: [Pattern]
 
-  /// The source range of the left parenthesis token.
   public let leftParenthesisRange: SourceRange?
 
-  /// The source range of the right parenthesis token.
   public let rightParenthesisRange: SourceRange?
 
-  public var range: SourceRange? {
-    if let lower = leftParenthesisRange, let upper = rightParenthesisRange {
-      return lower.lowerBound ..< upper.upperBound
-    }
-
-    let elementsRange = SourceRange.union(of: elements.compactMap({ $0.range }))
-    let lower = leftParenthesisRange ?? elementsRange ?? rightParenthesisRange
-    let upper = rightParenthesisRange ?? elementsRange ?? leftParenthesisRange
-
-    return lower != nil
-      ? lower!.lowerBound ..< upper!.upperBound
-      : nil
+  public var contentRange: SourceRange? {
+    SourceRange.union(of: elements.compactMap({ $0.range }))
   }
 
   public init(
@@ -82,6 +70,8 @@ public final class TuplePattern: Pattern {
 }
 
 /// A pattern that matches an arbitrary value, but does not bind it to a name.
+///
+/// - Note: This corresponds to `AnyPattern` in swiftc.
 public final class WildcardPattern: Pattern {
 
   public let range: SourceRange?

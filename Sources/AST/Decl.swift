@@ -112,3 +112,109 @@ public final class VarDecl: SourceRepresentable {
   }
 
 }
+
+/// A function declaration.
+public final class FuncDecl: SourceRepresentable {
+
+  /// The source range of the `func` keyword.
+  public let funcKeywordRange: SourceRange
+
+  /// The function's name.
+  ///
+  /// Note:
+  ///   This property is an instance of `DeclName` (defined in `AST/Identifier.h`) in swiftc rather
+  ///   than a simple string. A `DeclName` can be a single identifier or a compound declaration
+  ///   name which I think is something of the form `foo(bar:baz:)`.
+  public let name: String
+
+  /// The declaration of the operator corresponding to this function's identifier, if it implements
+  /// an operator.
+  public var operatorDecl: OperatorDecl? {
+    willSet {
+      // TODO: make sure `name` is an operator.
+    }
+  }
+
+  /// The parameters of this function declaration.
+  public let parameters: ParameterList
+
+  /// The optional return type annotation of this function declaration.
+  public let returnTypeAnnotation: TypeLocation?
+
+  /// The body of this function declaration.
+  public let body: BraceStmt?
+
+  public var range: SourceRange? {
+    return funcKeywordRange
+  }
+
+  public init(
+    funcKeywordRange: SourceRange,
+    name: String,
+    parameters: ParameterList,
+    returnTypeAnnotation: TypeLocation? = nil,
+    body: BraceStmt
+  ) {
+    self.funcKeywordRange = funcKeywordRange
+    self.name = name
+    self.parameters = parameters
+    self.returnTypeAnnotation = returnTypeAnnotation
+    self.body = body
+  }
+
+}
+
+/// A list of function parameters.
+public struct ParameterList: ParenthesizedNode {
+
+  /// The parameters in this list.
+  public let parameters: [ParamDecl]
+
+  public var leftParenthesisRange: SourceRange?
+
+  public var rightParenthesisRange: SourceRange?
+
+  public var contentRange: SourceRange? {
+    SourceRange.union(of: parameters.compactMap({ $0.range }))
+  }
+
+  public init(
+    parameters: [ParamDecl],
+    leftParenthesisRange: SourceRange?,
+    rightParenthesisRange: SourceRange?
+  ) {
+    self.parameters = parameters
+    self.leftParenthesisRange = leftParenthesisRange
+    self.rightParenthesisRange = rightParenthesisRange
+  }
+
+}
+
+extension ParameterList: Collection {
+
+  public var startIndex: Int { 0 }
+
+  public var endIndex: Int { parameters.count }
+
+  public func index(after i: Int) -> Int { i + 1 }
+
+  public subscript(index: Int) -> ParamDecl {
+    parameters[index]
+  }
+
+}
+
+/// A parameter declaration.
+public final class ParamDecl: SourceRepresentable {
+
+  public let range: SourceRange?
+
+  public init(range: SourceRange?) {
+    self.range = range
+  }
+
+}
+
+/// An operator declaration.
+public class OperatorDecl {
+}

@@ -4,69 +4,58 @@ import XCTest
 import AST
 import Parser
 
-class PatternParserTests: XCTestCase {
+class PatternParserTests: XCTestCase, ParserTestCase {
 
   func testParseNamedPattern() {
-    let stream = tokenize("foo")
+    var stream = tokenize("foo")
+    var diagnostics: [Diagnostic] = []
 
-    check(PatternParser.get.parse(stream)) { pattern in
-      assertThat(pattern, .isInstance(of: NamedPattern.self))
-      if let namedPattern = pattern as? NamedPattern {
-        assertThat(namedPattern.name, .equals("foo"))
-      }
+    let result = PatternParser.get.parse(stream: &stream, diagnostics: &diagnostics)
+    assertThat(diagnostics, .isEmpty)
 
-      assertThat(pattern.range, .not(.isNil))
-      assertThat(pattern.range, .equals(stream.first?.range))
+    assertThat(result, .not(.isNil))
+    assertThat(result, .isInstance(of: NamedPattern.self))
+    if let pattern = result as? NamedPattern {
+      assertThat(pattern.name, .equals("foo"))
+
+      assertThat(pattern.range?.lowerBound.description, .equals("1:1"))
+      assertThat(pattern.range?.upperBound.description, .equals("1:4"))
     }
   }
 
   func testParseTuplePattern() {
-    let stream = tokenize("(foo, (bar, baz))")
+    var stream = tokenize("(foo, (bar, baz))")
+    var diagnostics: [Diagnostic] = []
 
-    check(PatternParser.get.parse(stream)) { pattern in
-      assertThat(pattern, .isInstance(of: TuplePattern.self))
-      if let tuplePattern = pattern as? TuplePattern {
-        assertThat(tuplePattern.elements, .count(2))
-        if tuplePattern.elements.count >= 2 {
-          assertThat(tuplePattern.elements[0], .isInstance(of: NamedPattern.self))
-          assertThat(tuplePattern.elements[1], .isInstance(of: TuplePattern.self))
-        }
+    let result = PatternParser.get.parse(stream: &stream, diagnostics: &diagnostics)
+    assertThat(diagnostics, .isEmpty)
+
+    assertThat(result, .not(.isNil))
+    assertThat(result, .isInstance(of: TuplePattern.self))
+    if let pattern = result as? TuplePattern {
+      assertThat(pattern.elements, .count(2))
+      if pattern.elements.count >= 2 {
+        assertThat(pattern.elements[0], .isInstance(of: NamedPattern.self))
+        assertThat(pattern.elements[1], .isInstance(of: TuplePattern.self))
       }
 
-      assertThat(pattern.range, .not(.isNil))
-      assertThat(pattern.range?.lowerBound, .equals(stream.first?.range.lowerBound))
-      assertThat(pattern.range?.upperBound, .equals(stream.dropLast().last?.range.upperBound))
+      assertThat(pattern.range?.lowerBound.description, .equals("1:1"))
+      assertThat(pattern.range?.upperBound.description, .equals("1:18"))
     }
   }
 
   func testWildcardPattern() {
-    let stream = tokenize("_")
+    var stream = tokenize("_")
+    var diagnostics: [Diagnostic] = []
 
-    check(PatternParser.get.parse(stream)) { pattern in
-      assertThat(pattern, .isInstance(of: WildcardPattern.self))
-      assertThat(pattern.range, .not(.isNil))
-      assertThat(pattern.range, .equals(stream.first?.range))
-    }
-  }
+    let result = PatternParser.get.parse(stream: &stream, diagnostics: &diagnostics)
+    assertThat(diagnostics, .isEmpty)
 
-  private func tokenize(_ buffer: String) -> [Token] {
-    let source = TranslationUnit(name: "<test>", source: buffer)
-    return Array(try! Lexer(translationUnit: source))
-  }
-
-  private func check<Element>(_ parseResult: ParseResult<Element>, assertions: (Element) -> Void) {
-    switch parseResult {
-    case .success(let element, let remainder, let diagnostics):
-      // check the given assertions.
-      assertions(element)
-
-      // The parser should have consumed all tokens from the stream but `EOF` and shouldn't have
-      // diagnosed any issue.
-      assertThat(remainder.first?.kind, .equals(.eof))
-      assertThat(diagnostics, .isEmpty)
-
-    case .failure(let diagnostics):
-      XCTFail("parsing unexpectedly failed with \(diagnostics.count) dignostics")
+    assertThat(result, .not(.isNil))
+    assertThat(result, .isInstance(of: WildcardPattern.self))
+    if let pattern = result as? WildcardPattern {
+      assertThat(pattern.range?.lowerBound.description, .equals("1:1"))
+      assertThat(pattern.range?.upperBound.description, .equals("1:3"))
     }
   }
 

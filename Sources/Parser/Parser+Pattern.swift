@@ -4,40 +4,31 @@ public struct PatternParser: Parser {
 
   public typealias Element = Pattern
 
-  public func parse(_ stream: TokenStream) -> ParseResult<Pattern> {
-    switch stream.first?.kind {
+  public func parse(stream: inout TokenStream, diagnostics: inout [Diagnostic]) -> Pattern? {
+    switch stream.peek().kind {
     case .identifier:
-      let pattern = NamedPattern(name: stream.first!.value!, range: stream.first!.range)
-      return .success(pattern, stream.dropFirst(), [])
+      let identTok = stream.consume()
+      return NamedPattern(name: identTok.value!, range: identTok.range)
+
 
     case .underscore:
-      let pattern = WildcardPattern(range: stream.first!.range)
-      return .success(pattern, stream.dropFirst(), [])
+      let identTok = stream.consume()
+      return WildcardPattern(range: identTok.range)
 
     case .leftParenthesis:
-      let (elts, rem, diags) = parseList(stream.dropFirst(), terminator: .rightParenthesis)
+      let leftParenthesis = stream.consume()
+      let elements = list(terminatedBy: .rightParenthesis)
+        .parse(stream: &stream, diagnostics: &diagnostics)
+      let rightParenthesis = stream.consume(.rightParenthesis)
 
-      let leftParenthesisToken = stream.first
-      let rightParenthesisToken: Token?
-      let remainder: TokenStream
-
-      if rem.first?.kind == .rightParenthesis {
-        rightParenthesisToken = rem.first!
-        remainder = rem.dropFirst()
-      } else {
-        rightParenthesisToken = nil
-        remainder = rem
-      }
-
-      let pattern = TuplePattern(
-        elements: elts,
-        leftParenthesisRange: leftParenthesisToken?.range,
-        rightParenthesisRange: rightParenthesisToken?.range)
-      return .success(pattern, remainder, diags)
+      return TuplePattern(
+        elements: elements ?? [],
+        leftParenthesisRange: leftParenthesis.range,
+        rightParenthesisRange: rightParenthesis?.range)
 
     default:
-      let diagnostics = [expectedError.instantiate(at: stream.first?.range, with: "pattern")]
-      return .failure(diagnostics)
+      diagnostics.append(expectedError.instantiate(at: stream.peek().range, with: "pattern"))
+      return nil
     }
   }
 
