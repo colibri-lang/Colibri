@@ -20,12 +20,17 @@ public struct Token {
         .prefix(range.upperBound.offset - range.lowerBound.offset))
   }
 
+  /// Whether this token is a comment.
+  public var isComment: Bool {
+    return (kind == .comment)
+        || (kind == .multilineComment)
+        || (kind == .unterminatedComment)
+  }
+
   /// Whether this token is a skippable token (e.g. a comment, whitespace, ...).
   public var isSkippable: Bool {
     return (kind == .newline)
-        || (kind == .comment)
-        || (kind == .multilineComment)
-        || (kind == .unterminatedComment)
+        || isComment
   }
 
   /// Whether this token is an explicit statement delimiter (i.e. `;` or `EOF`).
