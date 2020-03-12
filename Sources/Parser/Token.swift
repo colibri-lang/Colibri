@@ -20,6 +20,14 @@ public struct Token {
         .prefix(range.upperBound.offset - range.lowerBound.offset))
   }
 
+  /// Whether this token is a skippable token (e.g. a comment, whitespace, ...).
+  public var isSkippable: Bool {
+    return (kind == .newline)
+        || (kind == .comment)
+        || (kind == .multilineComment)
+        || (kind == .unterminatedComment)
+  }
+
   /// Whether this token is an explicit statement delimiter (i.e. `;` or `EOF`).
   public var isExplicitStatementDelimiter: Bool {
     (kind == .semicolon) || (kind == .eof)
@@ -27,7 +35,7 @@ public struct Token {
 
   /// Whether this token is either an explicit statement delimiter or a newline.
   public var isStatementDelimiter: Bool {
-    kind == .newline || isExplicitStatementDelimiter
+    (kind == .newline) || isExplicitStatementDelimiter
   }
   
   public init(kind: TokenKind, range: SourceRange) {
