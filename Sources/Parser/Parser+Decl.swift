@@ -10,7 +10,9 @@ public struct PatternBindingDeclParser: Parser {
   ) -> PatternBindingDecl? {
     // Parses the `let` or `var` keyword at the beginning of the declaration.
     guard let letOrVarTok = stream.consume([.let, .var]) else {
-      diagnostics.append(expectedError.instantiate(at: stream.peek().range, with: "let"))
+      diagnostics.append(expectedError.instantiate(
+        at: stream.nextNonCommentToken?.range,
+        with: "let"))
       return nil
     }
 

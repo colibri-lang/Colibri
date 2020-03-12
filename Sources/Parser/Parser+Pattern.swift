@@ -27,7 +27,9 @@ public struct PatternParser: Parser {
         rightParenthesisRange: rightParenthesis?.range)
 
     default:
-      diagnostics.append(expectedError.instantiate(at: stream.peek().range, with: "pattern"))
+      diagnostics.append(expectedError.instantiate(
+        at: stream.nextNonCommentToken?.range,
+        with: "pattern"))
       return nil
     }
   }

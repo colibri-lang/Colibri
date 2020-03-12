@@ -39,7 +39,9 @@ public struct PrimaryExprParser: Parser {
       return MagicIdentifierLiteralExpr(range: litTok.range)
 
     default:
-      diagnostics.append(expectedError.instantiate(at: stream.peek().range, with: "expression"))
+      diagnostics.append(expectedError.instantiate(
+        at: stream.nextNonCommentToken?.range,
+        with: "expression"))
       return nil
     }
   }

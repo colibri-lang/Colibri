@@ -53,7 +53,7 @@ public struct ListParser<Subparser>: Parser where Subparser: Parser {
       case .comma:
         // Handle leading separators as a particular error case.
         diagnostics.append(unexpectedError.instantiate(
-          at: stream.peek(ignoringSkippable: false).range,
+          at: stream.nextNonCommentToken?.range,
           with: ["',' separator"]))
         stream.consume()
         continue
@@ -85,7 +85,7 @@ public struct ListParser<Subparser>: Parser where Subparser: Parser {
 
       default:
         diagnostics.append(expectedError.instantiate(
-          at: stream.peek(ignoringSkippable: false).range,
+          at: stream.nextNonCommentToken?.range,
           with: ["',' separator"]))
       }
     }

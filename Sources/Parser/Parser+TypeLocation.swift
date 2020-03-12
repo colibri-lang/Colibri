@@ -12,7 +12,9 @@ public struct TypeLocationParser: Parser {
       return location
 
     default:
-      diagnostics.append(expectedError.instantiate(at: stream.peek().range, with: "type"))
+      diagnostics.append(expectedError.instantiate(
+        at: stream.nextNonCommentToken?.range,
+        with: "type"))
       return nil
     }
   }

@@ -53,6 +53,13 @@ public struct TokenStream {
     return first(ignoringSkippable: ignoringSkippable, where: { _ in true })!
   }
 
+  /// The next non-comment token.
+  public var nextNonCommentToken: Token? {
+    mutating get {
+      first(ignoringSkippable: false, where: { token in !token.isComment })
+    }
+  }
+
   // MARK: Consuming helpers
 
   /// Consumes the next token from the stream.
