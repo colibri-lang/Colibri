@@ -12,14 +12,13 @@ class ExprParserTests: XCTestCase, ParserTestCase {
 
     let result = PrimaryExprParser.get.parse(stream: &stream, diagnostics: &diagnostics)
     assertThat(diagnostics, .isEmpty)
-
     assertThat(result, .not(.isNil))
     assertThat(result, .isInstance(of: UnresolvedDeclRefExpr.self))
+
     if let expr = result as? UnresolvedDeclRefExpr {
       assertThat(expr.name, .equals("foo"))
 
-      assertThat(expr.range?.lowerBound.description, .equals("1:1"))
-      assertThat(expr.range?.upperBound.description, .equals("1:4"))
+      assertThat(expr.range?.description, .equals("1:1..<1:4"))
     }
   }
 

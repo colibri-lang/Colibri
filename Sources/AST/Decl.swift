@@ -116,9 +116,6 @@ public final class VarDecl: SourceRepresentable {
 /// A function declaration.
 public final class FuncDecl: SourceRepresentable {
 
-  /// The source range of the `func` keyword.
-  public let funcKeywordRange: SourceRange
-
   /// The function's name.
   ///
   /// Note:
@@ -135,71 +132,109 @@ public final class FuncDecl: SourceRepresentable {
     }
   }
 
-  /// The parameters of this function declaration.
-  public let parameters: ParameterList
-
-  /// The optional return type annotation of this function declaration.
-  public let returnTypeAnnotation: TypeLocation?
+  /// the function's signature.
+  public let signature: FuncSign
 
   /// The body of this function declaration.
   public let body: BraceStmt?
 
-  public var range: SourceRange? {
-    return funcKeywordRange
-  }
+  public var range: SourceRange?
 
   public init(
-    funcKeywordRange: SourceRange,
     name: String,
-    parameters: ParameterList,
-    returnTypeAnnotation: TypeLocation? = nil,
-    body: BraceStmt
+    signature: FuncSign,
+    body: BraceStmt?,
+    range: SourceRange?
   ) {
-    self.funcKeywordRange = funcKeywordRange
     self.name = name
-    self.parameters = parameters
-    self.returnTypeAnnotation = returnTypeAnnotation
+    self.signature = signature
     self.body = body
+    self.range = range
   }
 
 }
 
-/// A list of function parameters.
-public struct ParameterList: ParenthesizedNode {
+/// A function signature.
+public struct FuncSign: SourceRepresentable {
 
-  /// The parameters in this list.
-  public let parameters: [ParamDecl]
+  /// A kind of throwing behavior.
+  public enum ThrowingBehavior {
+
+    case none
+    case `throws`
+    case `rethrows`
+
+  }
+
+  /// The function's parameters.
+  public let parameters: ParamList
+
+  /// The function's return type.
+  public let returnType: TypeLocation?
+
+  /// The function's throwing behavior.
+  public let throwingBehavior: ThrowingBehavior
+
+  /// The range of the `throws` or `rethrows` keyword, if present.
+  public let throwsKeywordRange: SourceRange?
+
+  public var range: SourceRange? {
+    guard let lower = parameters.range ?? returnType?.range ?? throwsKeywordRange
+      else { return nil }
+    let upper = throwsKeywordRange ?? returnType?.range ?? lower
+    return lower.lowerBound ..< upper.upperBound
+  }
+
+  public init(
+    parameters: ParamList,
+    returnType: TypeLocation?,
+    throwingBehavior: ThrowingBehavior,
+    throwsKeywordRange: SourceRange?
+  ) {
+    self.parameters = parameters
+    self.returnType = returnType
+    self.throwingBehavior = throwingBehavior
+    self.throwsKeywordRange = throwsKeywordRange
+  }
+
+}
+
+/// A list of function parameter declarations.
+public struct ParamList: ParenthesizedNode {
+
+  /// The declarations in this list.
+  public let decls: [ParamDecl]
 
   public var leftParenthesisRange: SourceRange?
 
   public var rightParenthesisRange: SourceRange?
 
   public var contentRange: SourceRange? {
-    SourceRange.union(of: parameters.compactMap({ $0.range }))
+    SourceRange.union(of: decls.compactMap({ $0.range }))
   }
 
   public init(
-    parameters: [ParamDecl],
-    leftParenthesisRange: SourceRange?,
-    rightParenthesisRange: SourceRange?
+    decls: [ParamDecl] = [],
+    leftParenthesisRange: SourceRange? = nil,
+    rightParenthesisRange: SourceRange? = nil
   ) {
-    self.parameters = parameters
+    self.decls = decls
     self.leftParenthesisRange = leftParenthesisRange
     self.rightParenthesisRange = rightParenthesisRange
   }
 
 }
 
-extension ParameterList: Collection {
+extension ParamList: Collection {
 
   public var startIndex: Int { 0 }
 
-  public var endIndex: Int { parameters.count }
+  public var endIndex: Int { decls.count }
 
   public func index(after i: Int) -> Int { i + 1 }
 
   public subscript(index: Int) -> ParamDecl {
-    parameters[index]
+    decls[index]
   }
 
 }
@@ -207,9 +242,26 @@ extension ParameterList: Collection {
 /// A parameter declaration.
 public final class ParamDecl: SourceRepresentable {
 
+  /// The external name of this parameter.
+  public let externalName: String?
+
+  /// The internal name of this parameter.
+  public let internalName: String?
+
+  /// The type location annotating this parameter.
+  public let typeLocation: TypeLocation?
+
   public let range: SourceRange?
 
-  public init(range: SourceRange?) {
+  public init(
+    externalName: String?,
+    internalName: String?,
+    typeLocation: TypeLocation?,
+    range: SourceRange?
+  ) {
+    self.externalName = externalName
+    self.internalName = internalName
+    self.typeLocation = typeLocation
     self.range = range
   }
 
@@ -217,4 +269,5 @@ public final class ParamDecl: SourceRepresentable {
 
 /// An operator declaration.
 public class OperatorDecl {
+
 }

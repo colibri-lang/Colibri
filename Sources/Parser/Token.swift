@@ -20,6 +20,11 @@ public struct Token {
         .prefix(range.upperBound.offset - range.lowerBound.offset))
   }
 
+  /// Whether this token is an operator.
+  public var isOperator: Bool {
+    return (kind == .op)
+  }
+
   /// Whether this token is a keyword.
   public var isKeyword: Bool {
     // TODO: Implement me with sourcery!
@@ -41,12 +46,14 @@ public struct Token {
 
   /// Whether this token is an explicit statement delimiter (i.e. `;` or `EOF`).
   public var isExplicitStatementDelimiter: Bool {
-    (kind == .semicolon) || (kind == .eof)
+    return (kind == .semicolon)
+        || (kind == .eof)
   }
 
   /// Whether this token is either an explicit statement delimiter or a newline.
   public var isStatementDelimiter: Bool {
-    (kind == .newline) || isExplicitStatementDelimiter
+    return (kind == .newline)
+        || isExplicitStatementDelimiter
   }
   
   public init(kind: TokenKind, range: SourceRange) {

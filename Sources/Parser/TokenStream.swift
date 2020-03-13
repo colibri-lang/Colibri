@@ -133,6 +133,16 @@ public struct TokenStream {
 
   // MARK: Backtracking
 
+  /// Rewinds the stream for `count` positions.
+  ///
+  /// - Parameter count:
+  ///   The distance to rewind. `count` must be greater or erqual to 0 and smaller than the current
+  ///   lenght of the look-behind buffer.
+  public mutating func rewind(count: Int = 1) {
+    assert((count >= 0) && (count <= offset))
+    offset = offset - count
+  }
+
   /// Clears the look-behind buffer.
   public mutating func clear() {
     buffer.removeFirst(offset)

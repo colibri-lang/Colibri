@@ -12,14 +12,13 @@ class PatternParserTests: XCTestCase, ParserTestCase {
 
     let result = PatternParser.get.parse(stream: &stream, diagnostics: &diagnostics)
     assertThat(diagnostics, .isEmpty)
-
     assertThat(result, .not(.isNil))
     assertThat(result, .isInstance(of: NamedPattern.self))
+
     if let pattern = result as? NamedPattern {
       assertThat(pattern.name, .equals("foo"))
 
-      assertThat(pattern.range?.lowerBound.description, .equals("1:1"))
-      assertThat(pattern.range?.upperBound.description, .equals("1:4"))
+      assertThat(pattern.range?.description, .equals("1:1..<1:4"))
     }
   }
 
@@ -29,9 +28,9 @@ class PatternParserTests: XCTestCase, ParserTestCase {
 
     let result = PatternParser.get.parse(stream: &stream, diagnostics: &diagnostics)
     assertThat(diagnostics, .isEmpty)
-
     assertThat(result, .not(.isNil))
     assertThat(result, .isInstance(of: TuplePattern.self))
+
     if let pattern = result as? TuplePattern {
       assertThat(pattern.elements, .count(2))
       if pattern.elements.count >= 2 {
@@ -39,8 +38,7 @@ class PatternParserTests: XCTestCase, ParserTestCase {
         assertThat(pattern.elements[1], .isInstance(of: TuplePattern.self))
       }
 
-      assertThat(pattern.range?.lowerBound.description, .equals("1:1"))
-      assertThat(pattern.range?.upperBound.description, .equals("1:18"))
+      assertThat(pattern.range?.description, .equals("1:1..<1:18"))
     }
   }
 
@@ -50,12 +48,11 @@ class PatternParserTests: XCTestCase, ParserTestCase {
 
     let result = PatternParser.get.parse(stream: &stream, diagnostics: &diagnostics)
     assertThat(diagnostics, .isEmpty)
-
     assertThat(result, .not(.isNil))
     assertThat(result, .isInstance(of: WildcardPattern.self))
+
     if let pattern = result as? WildcardPattern {
-      assertThat(pattern.range?.lowerBound.description, .equals("1:1"))
-      assertThat(pattern.range?.upperBound.description, .equals("1:3"))
+      assertThat(pattern.range?.description, .equals("1:1..<1:2"))
     }
   }
 
