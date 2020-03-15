@@ -32,6 +32,7 @@ public struct FuncDeclParser: Parser {
 
   public typealias Element = FuncDecl
 
+  /// The sub-parser used to parse function declaration identifiers.
   private let declIdentParser = DeclIdentNameParser(
     declarationKind: "function",
     recoverIfNextSatisfies: { token in
@@ -52,7 +53,6 @@ public struct FuncDeclParser: Parser {
 
     // Parse the function's name.
     var name: String
-
     if let operatorTok = stream.consume(if: { tok in tok.isOperator }) {
       // If the name is an operator token that ends in '<' the following token is an identifier,
       // split the '<' off as a separate token, so that things like `func ==<T>(x: T, y: T)` can
@@ -70,26 +70,33 @@ public struct FuncDeclParser: Parser {
     }
 
     // TODO: Parse the function's generic parameters, if present.
+    // Note that we should probably set a flag if we parsed an operator that ends with '<'.
 
     // Parse the function's parameter list.
 
     // TODO:
-    // If we're parsing a method, add an implement first pattern to match `self`. This should allow
-    // a method `(Int) -> Int` on `Foo` to turn into into `(inout self: Foo) -> (Int) -> Int`, and
-    // a static method `(Int) -> Int` to turn into `(self: Foot.Type) -> (Int) -> Int`.
+    // If we're parsing a method, add an implement first pattern to match 'self'. This should allow
+    // a method '(Int) -> Int' on 'Foo' to turn into into '(inout self: Foo) -> (Int) -> Int', and
+    // a static method '(Int) -> Int' to turn into '(self: Foot.Type) -> (Int) -> Int'.
 
+    // Parse the function's signature. Since this sub-parser is fairly resilient, so we don't try
+    // to recover if it gets stuck on a hard failure.
     guard let signature = FuncSignParser.get.parse(stream: &stream, diagnostics: &diagnostics)
       else { return nil }
 
     // TODO: Parse the function's generic clause.
 
-    // TODO: Parse the function's body.
+    // Parse the function's body, if present.
+    var body: BraceStmt?
+    if stream.peek().kind == .leftBrace {
+      body = BraceStmtParser.get.parse(stream: &stream, diagnostics: &diagnostics)
+    }
 
-    let upperRange = signature.range ?? funcTok.range
+    let upperRange = body?.range ?? signature.range ?? funcTok.range
     return FuncDecl(
       name: name,
       signature: signature,
-      body: nil,
+      body: body,
       range: funcTok.range.lowerBound ..< upperRange.upperBound)
   }
 
