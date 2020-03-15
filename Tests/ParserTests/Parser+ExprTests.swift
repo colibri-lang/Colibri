@@ -17,7 +17,6 @@ class ExprParserTests: XCTestCase, ParserTestCase {
 
     if let expr = result as? UnresolvedDeclRefExpr {
       assertThat(expr.name, .equals("foo"))
-
       assertThat(expr.range?.description, .equals("1:1..<1:4"))
     }
   }

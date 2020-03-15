@@ -17,7 +17,6 @@ class PatternParserTests: XCTestCase, ParserTestCase {
 
     if let pattern = result as? NamedPattern {
       assertThat(pattern.name, .equals("foo"))
-
       assertThat(pattern.range?.description, .equals("1:1..<1:4"))
     }
   }
