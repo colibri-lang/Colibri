@@ -20,6 +20,17 @@ public struct Token {
         .prefix(range.upperBound.offset - range.lowerBound.offset))
   }
 
+  /// Whether this token is at the beginning of a line.
+  public var isAtStartOfLine: Bool {
+    let startOffset = range.lowerBound.offset
+    guard startOffset > 0
+      else { return true }
+
+    let source = range.lowerBound.translationUnit.source
+    let index = source.index(source.startIndex, offsetBy: startOffset - 1)
+    return source[index].isNewline
+  }
+
   /// Whether this token is an operator.
   public var isOperator: Bool {
     return (kind == .op)
