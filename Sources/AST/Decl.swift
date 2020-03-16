@@ -1,5 +1,10 @@
+/// A declaration.
+public protocol Decl: Node {
+
+}
+
 /// An access control modifier.
-public final class AccessModifier: SourceRepresentable {
+public final class AccessModifier: Node, SourceRepresentable {
 
   /// An access control level.
   public enum Level {
@@ -25,7 +30,7 @@ public final class AccessModifier: SourceRepresentable {
 }
 
 /// A declaration modifier.
-public final class DeclModifier: SourceRepresentable {
+public final class DeclModifier: Decl, SourceRepresentable {
 
   /// A kind of declaration modifier.
   public enum Kind {
@@ -66,7 +71,7 @@ public final class DeclModifier: SourceRepresentable {
 /// ```colibri
 /// let (a, b) = foo()
 /// ```
-public final class PatternBindingDecl {
+public final class PatternBindingDecl: Decl, SourceRepresentable {
 
   /// The source range of the `let` or `var` keyword.
   public let letVarKeywordRange: SourceRange
@@ -96,7 +101,7 @@ public final class PatternBindingDecl {
 }
 
 /// A variable declaration.
-public final class VarDecl: SourceRepresentable {
+public final class VarDecl: Decl, SourceRepresentable {
 
   /// The variable's name.
   public let name: String
@@ -114,7 +119,7 @@ public final class VarDecl: SourceRepresentable {
 }
 
 /// A function declaration.
-public final class FuncDecl: SourceRepresentable {
+public final class FuncDecl: Decl, SourceRepresentable {
 
   /// The function's name.
   ///
@@ -155,7 +160,7 @@ public final class FuncDecl: SourceRepresentable {
 }
 
 /// A function signature.
-public struct FuncSign: SourceRepresentable {
+public struct FuncSign: Node, SourceRepresentable {
 
   /// A kind of throwing behavior.
   public enum ThrowingBehavior {
@@ -200,7 +205,7 @@ public struct FuncSign: SourceRepresentable {
 }
 
 /// A list of function parameter declarations.
-public struct ParamList: ParenthesizedNode {
+public struct ParamList: Node, ParenthesizedNode {
 
   /// The declarations in this list.
   public let decls: [ParamDecl]
@@ -240,7 +245,7 @@ extension ParamList: Collection {
 }
 
 /// A parameter declaration.
-public final class ParamDecl: SourceRepresentable {
+public final class ParamDecl: Decl, SourceRepresentable {
 
   /// The external name of this parameter.
   public let externalName: String?
@@ -268,6 +273,6 @@ public final class ParamDecl: SourceRepresentable {
 }
 
 /// An operator declaration.
-public class OperatorDecl {
+public class OperatorDecl: Decl {
 
 }

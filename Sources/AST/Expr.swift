@@ -1,4 +1,4 @@
-public protocol Expr: SourceRepresentable {
+public protocol Expr: Node, SourceRepresentable {
   
 }
 

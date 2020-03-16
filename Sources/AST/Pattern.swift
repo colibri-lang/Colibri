@@ -1,5 +1,5 @@
 /// A pattern.
-public protocol Pattern: SourceRepresentable {
+public protocol Pattern: Node, SourceRepresentable {
 }
 
 /// A pattern taht consists of an (untyped) sub-pattern and a type annotation.
