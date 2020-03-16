@@ -2,6 +2,38 @@ public protocol Expr: Node, SourceRepresentable {
   
 }
 
+/// A value assignment, like `x = y`.
+public struct AssignExpr: Expr {
+
+  /// The source range of the `=` operator.
+  public let equalOperatorRange: SourceRange
+
+  /// The left part of the assignment (i.e. the expression to which the value is assigned).
+  public let target: Expr
+
+  /// The right part of the assignment (i.e. the value being assigned).
+  public let source: Expr
+
+  public var range: SourceRange? {
+    return SourceRange.union(of: [
+      target.range,
+      equalOperatorRange,
+      source.range,
+    ].compactMap({ $0 }))
+  }
+
+  public init(
+    equalOperatorRange: SourceRange,
+    target: Expr,
+    source: Expr
+  ) {
+    self.equalOperatorRange = equalOperatorRange
+    self.target = target
+    self.source = source
+  }
+
+}
+
 /// A reference to a value whose declaration has yet to be resolved.
 ///
 /// This reoresents an unresolved identifier which may refer to a declaration that will be resolved
