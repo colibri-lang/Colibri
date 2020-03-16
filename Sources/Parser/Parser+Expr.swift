@@ -1,6 +1,47 @@
 import AST
 
-public typealias ExprParser = PrimaryExprParser
+/// Parses for expressions.
+///
+/// Because this parser is implemented as a recursive descent parser, a particular attention must
+/// be made as to how expressions can be parsed witout triggering infinite recursions, due to the
+/// left-recursion of the related production rules.
+public struct ExprParser: Parser {
+
+  public typealias Element = Expr
+
+  public func parse(stream: inout TokenStream, diagnostics: inout [Diagnostic]) -> Expr? {
+    // Parse a prefix expression.
+    guard var leftExpr = PrimaryExprParser.get.parse(stream: &stream, diagnostics: &diagnostics)
+      else { return nil }
+
+    // As long as we can parse an infix operator after a prefix expression, we must consume it as
+    // part of a binary expression. We also deal with precedence and associativity here, so that
+    // expressions are parsed into the proper AST.
+    while true {
+      switch stream.peek().kind {
+      case .assign:
+        // Parse the source expression after the assignment operator.
+        let assignTok = stream.consume()
+        guard let rightExpr = parse(stream: &stream, diagnostics: &diagnostics)
+          else { return leftExpr }
+
+        // Assignment expressions are always left-associative.
+        leftExpr = AssignExpr(
+          assignOperatorRange: assignTok.range,
+          target: leftExpr,
+          source: rightExpr)
+
+      default:
+        // We couldn't parse a binary expression. Simply return the prefix expression we parsed
+        // from the beginning.
+        return leftExpr
+      }
+    }
+  }
+
+  public static let get = ExprParser()
+
+}
 
 public struct PrimaryExprParser: Parser {
 

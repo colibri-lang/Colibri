@@ -6,7 +6,7 @@ public protocol Expr: Node, SourceRepresentable {
 public struct AssignExpr: Expr {
 
   /// The source range of the `=` operator.
-  public let equalOperatorRange: SourceRange
+  public let assignOperatorRange: SourceRange
 
   /// The left part of the assignment (i.e. the expression to which the value is assigned).
   public let target: Expr
@@ -17,17 +17,17 @@ public struct AssignExpr: Expr {
   public var range: SourceRange? {
     return SourceRange.union(of: [
       target.range,
-      equalOperatorRange,
+      assignOperatorRange,
       source.range,
     ].compactMap({ $0 }))
   }
 
   public init(
-    equalOperatorRange: SourceRange,
+    assignOperatorRange: SourceRange,
     target: Expr,
     source: Expr
   ) {
-    self.equalOperatorRange = equalOperatorRange
+    self.assignOperatorRange = assignOperatorRange
     self.target = target
     self.source = source
   }
