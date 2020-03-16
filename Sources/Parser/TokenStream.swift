@@ -53,6 +53,16 @@ public struct TokenStream {
     return first(ignoringSkippable: ignoringSkippable, where: { _ in true })!
   }
 
+  /// The token that will be returned by the `n`-th application of `consume()`.
+  public mutating func lookahead(ignoringSkippable: Bool = true, n: Int) -> Token {
+    assert(n > 0)
+    var m = 1
+    return first(ignoringSkippable: ignoringSkippable, where: { _ in
+      defer { m = m + 1 }
+      return m == n
+    })!
+  }
+
   /// The next non-comment token.
   public var nextNonCommentToken: Token? {
     mutating get {

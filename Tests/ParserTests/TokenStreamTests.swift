@@ -61,6 +61,14 @@ class TokenStreamTests: XCTestCase {
     XCTAssertEqual(stream.peek(ignoringSkippable: false), tokens[4])
   }
 
+  func testLookahead() {
+    XCTAssertEqual(stream.lookahead(n: 1), tokens[1])
+    XCTAssertEqual(stream.lookahead(ignoringSkippable: false, n: 1), tokens[0])
+
+    XCTAssertEqual(stream.lookahead(n: 4), tokens[5])
+    XCTAssertEqual(stream.lookahead(ignoringSkippable: false, n: 4), tokens[3])
+  }
+
   func testConsume() {
     XCTAssertEqual(stream.consume(), tokens[1])
     XCTAssertEqual(stream.consume(), tokens[2])
