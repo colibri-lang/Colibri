@@ -55,16 +55,16 @@ public struct Token {
         || isComment
   }
 
-  /// Whether this token is an explicit statement delimiter (i.e. `;` or `EOF`).
-  public var isExplicitStatementDelimiter: Bool {
+  /// Whether this token is an explicit statement terminator (i.e. `;` or `EOF`).
+  public var isExplicitStmtTerminator: Bool {
     return (kind == .semicolon)
         || (kind == .eof)
   }
 
-  /// Whether this token is either an explicit statement delimiter or a newline.
-  public var isStatementDelimiter: Bool {
+  /// Whether this token is either an explicit statement terminator or a newline.
+  public var isStmtTerminator: Bool {
     return (kind == .newline)
-        || isExplicitStatementDelimiter
+        || isExplicitStmtTerminator
   }
   
   public init(kind: TokenKind, range: SourceRange) {

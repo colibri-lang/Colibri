@@ -149,7 +149,7 @@ public enum TokenKind: UInt64 {
   case arrow
   case backtick
 
-  // MARK: Delimiters
+  // MARK: Terminators
   
   case newline
   case semicolon

@@ -66,15 +66,15 @@ public struct ListParser<Subparser>: Parser where Subparser: Parser {
       if let element = subparser.parse(stream: &stream, diagnostics: &diagnostics) {
         elements.append(element)
       } else {
-        // Try to recover at the next statement delimiter.
-        stream.consume(ignoringSkippable: false, while: { token in !token.isStatementDelimiter })
+        // Try to recover at the next statement terminator.
+        stream.consume(ignoringSkippable: false, while: { token in !token.isStmtTerminator })
       }
 
       // The next token should be a separator or the list terminator. If it's the former, we shall
       // simply move on to the next element in the list. If it's the latter, the list has been
       // completely parsed and we should exit.
-      // Error recovery depends on the token we find. Statement delimiters are used as terminators
-      // and exit the loop, whereas any other token is diagnosed as a missing separator.
+      // Error recovery depends on the token we find. Statement terminators exit the loop, whereas
+      // any other token is diagnosed as a missing separator.
 
       switch stream.peek().kind {
       case .comma:
