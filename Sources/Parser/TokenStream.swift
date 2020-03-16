@@ -70,6 +70,36 @@ public struct TokenStream {
     }
   }
 
+  /// Indicates whether the next token returned by `consume()` starts a statement.
+  public var isAtStartOfStmt: Bool {
+    mutating get {
+      switch peek().kind {
+      case .return, .throw, .defer, .if, .guard, .while, .do, .repeat, .for, .break, .continue,
+           .fallthrough, .switch, .case, .default, ._if, ._warning, ._error, ._sourceLocation:
+        return true
+
+      case ._line:
+        // `#line` at the start of a line is a directive, when within, it is an expr.
+        return peek().isAtStartOfLine
+
+      case .identifier:
+        // <identifier> ":" ("for" | "while" | ...) is a label on a loop.
+        guard lookahead(n: 2).kind == .colon
+          else { return false }
+
+        switch lookahead(n: 3).kind {
+        case .while, .do, .repeat, .for, .switch:
+          return true
+        default:
+          return false
+        }
+
+      default:
+        return false
+      }
+    }
+  }
+
   // MARK: Consuming helpers
 
   /// Consumes the next token from the stream.
