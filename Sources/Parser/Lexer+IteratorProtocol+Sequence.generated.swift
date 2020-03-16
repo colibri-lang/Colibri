@@ -89,7 +89,7 @@ extension Lexer: IteratorProtocol, Sequence {
       skip()
     }
 
-    // Decide between the infox, prefix or postfix cases.
+    // Decide between the infix, prefix or postfix cases.
     // It's infix if either both sides are bound or both sides are not.
     // Otherwise, it's postfix if left-bound and prefix if right-bound.
     let leftBound = isLeftBound(index: tokenStartIndex)
@@ -477,7 +477,7 @@ extension Lexer: IteratorProtocol, Sequence {
       }
     }
 
-    return Token(kind: .unknown, range: range(from: startLocation))
+    return Token(kind: .integerLiteral, range: range(from: startLocation))
   }
 
   /// Lex a string literal.
