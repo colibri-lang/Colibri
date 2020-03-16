@@ -283,12 +283,6 @@ extension Lexer: IteratorProtocol, Sequence {
 
         return Token(kind: .floatLiteral, range: range(from: startLocation))
       }
-    } else {
-      // Floating literals must have '.', 'e', or 'E' after digits. If it is
-      // something else, then this is the end of the token.
-      if currentChar != "e" || currentChar != "E" {
-        return Token(kind: .integerLiteral, range: range(from: startLocation))
-      }
     }
 
     return Token(kind: .integerLiteral, range: range(from: startLocation))
