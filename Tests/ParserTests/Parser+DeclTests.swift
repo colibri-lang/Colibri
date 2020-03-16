@@ -6,7 +6,7 @@ import Parser
 
 class FuncDeclParserTests: XCTestCase, ParserTestCase {
 
-  func testParseSimple() {
+  func testBasic() {
     var stream = tokenize("func foo()")
     var diagnostics: [Diagnostic] = []
 
@@ -21,7 +21,7 @@ class FuncDeclParserTests: XCTestCase, ParserTestCase {
     }
   }
 
-  func testParseWithParams() {
+  func testWithParams() {
     var stream = tokenize("func foo(x: Int, y: Int)")
     var diagnostics: [Diagnostic] = []
 

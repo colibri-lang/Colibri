@@ -6,7 +6,7 @@ import Parser
 
 class ExprParserTests: XCTestCase, ParserTestCase {
 
-  func testParseUnresolvedDeclRefExpr() {
+  func testUnresolvedDeclRefExpr() {
     var stream = tokenize("foo")
     var diagnostics: [Diagnostic] = []
 

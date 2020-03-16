@@ -6,7 +6,7 @@ import Parser
 
 class PatternParserTests: XCTestCase, ParserTestCase {
 
-  func testParseNamedPattern() {
+  func testNamedPattern() {
     var stream = tokenize("foo")
     var diagnostics: [Diagnostic] = []
 
@@ -21,7 +21,7 @@ class PatternParserTests: XCTestCase, ParserTestCase {
     }
   }
 
-  func testParseTuplePattern() {
+  func testTuplePattern() {
     var stream = tokenize("(foo, (bar, baz))")
     var diagnostics: [Diagnostic] = []
 
