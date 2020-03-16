@@ -173,14 +173,32 @@ public struct TokenStream {
 
   // MARK: Backtracking
 
-  /// Rewinds the stream for `count` positions.
+  /// A backtracking save point.
   ///
-  /// - Parameter count:
-  ///   The distance to rewind. `count` must be greater or erqual to 0 and smaller than the current
-  ///   lenght of the look-behind buffer.
-  public mutating func rewind(count: Int = 1) {
-    assert((count >= 0) && (count <= offset))
-    offset = offset - count
+  /// This structure wraps the context of a token stream at a given point, and can be used to
+  /// restore that context after tokens have been consumed.
+  public struct BacktrackingPoint {
+
+    /// The state of the stream's lexer.
+    fileprivate let lexer: Lexer
+
+    /// The next token in the stream.
+    fileprivate let next: Token
+
+  }
+
+  /// Produces a backtracking save point that can be used to rewind the stream.
+  public mutating func backtrackingPoint() -> BacktrackingPoint {
+    return BacktrackingPoint(lexer: lexer, next: self.peek())
+  }
+
+  /// Rewinds the stream to the given backtrack point.
+  ///
+  /// - Parameter point: The backtracking point to which the stream should be rewinded.
+  public mutating func rewind(to point: BacktrackingPoint) {
+    lexer = point.lexer
+    buffer = [point.next]
+    offset = 0
   }
 
   /// Clears the look-behind buffer.

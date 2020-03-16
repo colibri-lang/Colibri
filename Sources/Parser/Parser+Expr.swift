@@ -1,5 +1,7 @@
 import AST
 
+public typealias ExprParser = PrimaryExprParser
+
 public struct PrimaryExprParser: Parser {
 
   public typealias Element = Expr
