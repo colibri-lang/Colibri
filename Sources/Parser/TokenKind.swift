@@ -85,25 +85,6 @@ public enum TokenKind: UInt64 {
   case `true`
   case `try`
   
-  // MARK: Pound keywords
-
-  case _available
-  case _colorLiteral
-  case _column
-  case _else
-  case _elseif
-  case _endif
-  case _error
-  case _file
-  case _fileLiteral
-  case _function
-  case _if
-  case _imageLiteral
-  case _line
-  case _selector
-  case _sourceLocation
-  case _warning
-  
   // MARK: Other keywords
 
   case associativity
@@ -136,6 +117,27 @@ public enum TokenKind: UInt64 {
   case shared
   // sourcery:end
   
+  // MARK: Pound keywords
+
+  // sourcery:begin: poundkeyword
+  case _available
+  case _colorLiteral
+  case _column
+  case _else
+  case _elseif
+  case _endif
+  case _error
+  case _file
+  case _fileLiteral
+  case _function
+  case _if
+  case _imageLiteral
+  case _line
+  case _selector
+  case _sourceLocation
+  case _warning
+  // sourcery:end
+
   // MARK: Punctuation
   
   case leftParenthesis
@@ -152,7 +154,7 @@ public enum TokenKind: UInt64 {
   case backtick
   case backslash
 
-  // MARK: Delimiters
+  // MARK: Terminators
   
   case newline
   case semicolon
@@ -161,7 +163,9 @@ public enum TokenKind: UInt64 {
   // MARK: Literals
   
   case integerLiteral
+  
   case floatLiteral
+  
   case stringLiteral
   case multilineStringLiteral
   case interpolatedStringLiteral

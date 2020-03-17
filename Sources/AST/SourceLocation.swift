@@ -85,5 +85,16 @@ extension SourceRange {
   public var translationUnit: TranslationUnit {
     return lowerBound.translationUnit
   }
+
+  public static func union<C>(of subranges: C) -> SourceRange?
+    where C: Collection, C.Element == SourceRange
+  {
+    guard !subranges.isEmpty
+      else { return nil }
+
+    let lower = subranges.min(by: { a, b in a.lowerBound < b.lowerBound })
+    let upper = subranges.max(by: { a, b in a.upperBound < b.upperBound })
+    return lower!.lowerBound ..< upper!.upperBound
+  }
   
 }

@@ -13,8 +13,10 @@ let package = Package(
     .target(name: "AST", dependencies: []),
     .target(name: "Parser", dependencies: ["AST"]),
     .target(name: "Sema", dependencies: ["AST"]),
+
+    .target(name: "AssertThat", dependencies: []),
     .target(name: "Utils", dependencies: []),
-    
-    .testTarget(name: "ParserTests", dependencies: ["AST", "Parser"])
+
+    .testTarget(name: "ParserTests", dependencies: ["AssertThat", "Parser"]),
   ]
 )
