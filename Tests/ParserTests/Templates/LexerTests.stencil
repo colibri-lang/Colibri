@@ -1,0 +1,452 @@
+import XCTest
+
+import AST
+
+@testable import Parser
+
+class LexerTests: XCTestCase {
+  
+  // MARK: Helper functions.
+  
+  /// Tokenize a String.
+  private func tokenize(_ source: String) -> [Token] {
+    let translationUnit = TranslationUnit(name: "test", source: source)
+    let lexer = Lexer(translationUnit: translationUnit)
+    return Array(lexer)
+  }
+
+  /// Compare the result of the lexer on a String with expected tokens.
+  private func checkLex(
+    _ source: String,
+    _ expectedTokenKinds: [TokenKind],
+    _ expectedTokenLengths: [Int]
+  ) {
+    let tokens = tokenize(source)
+    XCTAssertEqual(tokens.map({ $0.kind }), expectedTokenKinds)
+    let tokenLengths = tokens.map({ $0.range.upperBound.offset - $0.range.lowerBound.offset })
+    XCTAssertEqual(tokenLengths, expectedTokenLengths)
+  }
+
+  /// Compare the result of the lexer on a String with an expected keyword kind.
+  private func checkLexKeyword(_ source: String, _ expectedTokenKind: TokenKind) {
+    let tokens = tokenize(source)
+    XCTAssertEqual(tokens.map({ $0.kind })[0], expectedTokenKind)
+  }
+
+  // MARK: Test lexing on comments.
+
+  func testLexComments() {
+    let source = "//Blah\n(/*yo*/)"
+    let expectedTokenKinds: [TokenKind] = [
+      .comment, .newline, .leftParenthesis, .multilineComment, .rightParenthesis, .eof
+    ]
+    let expectedTokenLengths = [6, 1, 1, 6, 1, 0]
+    checkLex(source, expectedTokenKinds, expectedTokenLengths)
+  }
+
+  func testUnterminatedComment() {
+    let source = "/* Blah"
+    let expectedTokenKinds: [TokenKind] = [.unterminatedComment, .eof]
+    let expectedTokenLengths = [7, 0]
+    checkLex(source, expectedTokenKinds, expectedTokenLengths)
+  }
+
+  func testLexTrailingComments() {
+    let source = "//  comment\naaa //xx \n/* x */"
+    let expectedTokenKinds: [TokenKind] = [
+      .comment, .newline, .identifier, .comment, .newline, .multilineComment, .eof
+    ]
+    let expectedTokenLengths = [11, 1, 3, 5, 1, 7, 0]
+    checkLex(source, expectedTokenKinds, expectedTokenLengths)
+  }
+
+  // MARK: Test lexing on operators.
+
+  func testLexOperatorThenComment() {
+    let source = "a%&/*A comment*/"
+    let expectedTokenKinds: [TokenKind] = [.identifier, .postfixOperator, .multilineComment, .eof]
+    let expectedTokenLengths = [1, 2, 13, 0]
+    checkLex(source, expectedTokenKinds, expectedTokenLengths)
+  }
+
+  func testLexEqual() {
+    let source = "a = 0"
+    let expectedTokenKinds: [TokenKind] = [.identifier, .equal, .integerLiteral, .eof]
+    let expectedTokenLengths = [1, 1, 1, 0]
+    checkLex(source, expectedTokenKinds, expectedTokenLengths)
+  }
+
+  func testLexUnaryEqual() {
+    let source = "a =0"
+    let expectedTokenKinds: [TokenKind] = [.identifier, .unaryEqual, .integerLiteral, .eof]
+    let expectedTokenLengths = [1, 1, 1, 0]
+    checkLex(source, expectedTokenKinds, expectedTokenLengths)
+  }
+
+  func testLexAmpersandPrefix() {
+    let source = "&someVar"
+    let expectedTokenKinds: [TokenKind] = [.ampersandPrefix, .identifier, .eof]
+    let expectedTokenLengths = [1, 7, 0]
+    checkLex(source, expectedTokenKinds, expectedTokenLengths)
+  }
+
+  func testLexPeriodPrefix() {
+    let source = ".someEnumCase"
+    let expectedTokenKinds: [TokenKind] = [.periodPrefix, .identifier, .eof]
+    let expectedTokenLengths = [1, 12, 0]
+    checkLex(source, expectedTokenKinds, expectedTokenLengths)
+  }
+
+  func testLexPeriod() {
+    let source = "a.b"
+    let expectedTokenKinds: [TokenKind] = [.identifier, .period, .identifier, .eof]
+    let expectedTokenLengths = [1, 1, 1, 0]
+    checkLex(source, expectedTokenKinds, expectedTokenLengths)
+  }
+
+  func testLexPeriodStartingOperator() {
+    let source = "a .<. b"
+    let expectedTokenKinds: [TokenKind] = [.identifier, .infixOperator, .identifier, .eof]
+    let exptectedTokenLengths = [1, 3, 1, 0]
+    checkLex(source, expectedTokenKinds, exptectedTokenLengths)
+  }
+
+  func testLexOperatorThenPeriod() {
+    let source = "a<%.b"
+    let expectedTokenKinds: [TokenKind] = [
+      .identifier, .postfixOperator, .period, .identifier, .eof
+    ]
+    let expectedTokenLengths = [1, 2, 1, 1, 0]
+    checkLex(source, expectedTokenKinds, expectedTokenLengths)
+  }
+
+  func testLexQuestionPostfix() {
+    let source = "a? b"
+    let expectedTokenKinds: [TokenKind] = [.identifier, .questionPostfix, .identifier, .eof]
+    let expectedTokenLengths = [1, 1, 1, 0]
+    checkLex(source, expectedTokenKinds, expectedTokenLengths)
+  }
+
+  func testLexQuestionInfix() {
+    let source = "a ? b"
+    let expectedTokenKinds: [TokenKind] = [.identifier, .questionInfix, .identifier, .eof]
+    let expectedTokenLengths = [1, 1, 1, 0]
+    checkLex(source, expectedTokenKinds, expectedTokenLengths)
+  }
+
+  func testLexArrow() {
+    let source = "(Int, Int) -> Bool"
+    let expectedTokenKinds: [TokenKind] = [
+      .leftParenthesis, .identifier, .comma, .identifier, .rightParenthesis, .arrow, .identifier,
+      .eof
+    ]
+    let expectedTokenLengths = [1, 3, 1, 3, 1, 2, 4, 0]
+    checkLex(source, expectedTokenKinds, expectedTokenLengths)
+  }
+
+  func testLexUnexpectedCommentEnd() {
+    let source = "a */ b"
+    let expectedTokenKinds: [TokenKind] = [.identifier, .unexpectedCommentEnd, .identifier, .eof]
+    let expectedTokenLengths = [1, 2, 1, 0]
+    checkLex(source, expectedTokenKinds, expectedTokenLengths)
+  }
+
+  func testPrefixOperator() {
+    let source = "a <<=b"
+    let expectedTokenKinds: [TokenKind] = [.identifier, .prefixOperator, .identifier, .eof]
+    let expectedTokenLengths = [1, 3, 1, 0]
+    checkLex(source, expectedTokenKinds, expectedTokenLengths)
+  }
+
+  func testPostfixOperator() {
+    let source = "a*-=> b"
+    let expectedTokenKinds: [TokenKind] = [.identifier, .postfixOperator, .identifier, .eof]
+    let expectedTokenLengths = [1, 4, 1, 0]
+    checkLex(source, expectedTokenKinds, expectedTokenLengths)
+  }
+
+  func testInfixOperator() {
+    let source = "a <=> b"
+    let expectedTokenKinds: [TokenKind] = [.identifier, .infixOperator, .identifier, .eof]
+    let expectedTokenLengths = [1, 3, 1, 0]
+    checkLex(source, expectedTokenKinds, expectedTokenLengths)
+  }
+
+  // MARK: Test lexing on identifiers.
+
+  func testLexUnderscore() {
+    let source = "_ = 0"
+    let expectedTokenKinds: [TokenKind] = [.underscore, .equal, .integerLiteral, .eof]
+    let expectedTokenLengths = [1, 1, 1, 0]
+    checkLex(source, expectedTokenKinds, expectedTokenLengths)
+  }
+
+  func testLexEscapedIdentifier() {
+    let source = "`class`"
+    let expectedTokenKinds: [TokenKind] = [.escapedIdentifier, .eof]
+    let expectedTokenLengths = [7, 0]
+    checkLex(source, expectedTokenKinds, expectedTokenLengths)
+  }
+
+  func testLexUnterminatedEscapedIdentifier() {
+    let source = "`class "
+    let expectedTokenKinds: [TokenKind] = [.unterminatedEscapedIdentifier, .eof]
+    let expectedTokenLengths = [6, 0]
+    checkLex(source, expectedTokenKinds, expectedTokenLengths)
+  }
+
+  func testLexDollarIdentifier() {
+    let source = "$0 == 1"
+    let expectedTokenKinds: [TokenKind] = [.dollarIdentifier, .infixOperator, .integerLiteral, .eof]
+    let expectedTokenLengths = [2, 2, 1, 0]
+    checkLex(source, expectedTokenKinds, expectedTokenLengths)
+  }
+
+  func testLexDollarIdentifier2() {
+    let source = "$id"
+    let expectedTokenKinds: [TokenKind] = [.identifier, .eof]
+    let expectedTokenLengths = [3, 0]
+    checkLex(source, expectedTokenKinds, expectedTokenLengths)
+  }
+
+  func testLexDollar() {
+    let source = "$ id"
+    let expectedTokenKinds: [TokenKind] = [.unknown, .identifier, .eof]
+    let expectedTokenLengths = [1, 2, 0]
+    checkLex(source, expectedTokenKinds, expectedTokenLengths)
+  }
+
+  func testLexIdentifier() {
+    let source = "let myConst = 0"
+    let expectedTokenKinds: [TokenKind] = [
+      .let, .identifier, .equal, .integerLiteral, .eof
+    ]
+    let expectedTokenLengths = [3, 7, 1, 1, 0]
+    checkLex(source, expectedTokenKinds, expectedTokenLengths)
+  }
+
+  func testLexUnderscoreIdentifier() {
+    let source = "_identifier"
+    let expectedTokenKinds: [TokenKind] = [.identifier, .eof]
+    let expectedTokenLengths = [11, 0]
+    checkLex(source, expectedTokenKinds, expectedTokenLengths)
+  }
+
+  func testLexNumberThenIdentifier() {
+    let source = "3id"
+    let expectedTokenKinds: [TokenKind] = [.integerLiteral, .identifier, .eof]
+    let expectedTokenLengths = [1, 2, 0]
+    checkLex(source, expectedTokenKinds, expectedTokenLengths)
+  }
+
+  // MARK: Test lexing on keywords.
+
+  {% for case in type.TokenKind.cases|annotated:"keyword" %}
+  {% if case.name|contains:"init" or case.name|contains:"self" or case.name|contains:"Self" %}
+  func testLex{{ case.name|replace:"`","" }}() {
+    let source = "{{ case.name|replace:"`","" }}"
+    let expectedTokenKind: TokenKind = .{{ case.name }}
+    checkLexKeyword(source, expectedTokenKind)
+  }
+
+  {% else %}
+  func testLex{{ case.name|replace:"`","" }}() {
+      let source = "{{ case.name|replace:"`","" }}"
+      let expectedTokenKinds: TokenKind = .{{ case.name|replace:"`","" }}
+      checkLexKeyword(source, expectedTokenKinds)
+    }
+
+  {% endif %}
+  {% endfor %}
+  
+  {% for case in type.TokenKind.cases|annotated:"poundkeyword" %}
+  func testLex{{ case.name }}() {
+      let source = "{{ case.name|replace:"_","#" }}"
+      let expectedTokenKinds: TokenKind = .{{ case.name }}
+      checkLexKeyword(source, expectedTokenKinds)
+    }
+
+  {% endfor %}
+
+  // MARK: Test lexing on number literals.
+
+  func testLexIntegerLiteral() {
+    let source = "42"
+    let expectedTokenKinds: [TokenKind] = [.integerLiteral, .eof]
+    let expectedTokenLengths = [2, 0]
+    checkLex(source, expectedTokenKinds, expectedTokenLengths)
+  }
+
+  func testLexFloatLiteral() {
+    let source = "1.2"
+    let expectedTokenKinds: [TokenKind] = [.floatLiteral, .eof]
+    let expectedTokenLengths = [3, 0]
+    checkLex(source, expectedTokenKinds, expectedTokenLengths)
+  }
+
+  func testLexFloatWithExponent() {
+    let source = "1.25e-23"
+    let expectedTokenKinds: [TokenKind] = [.floatLiteral, .eof]
+    let expectedTokenLengths = [8, 0]
+    checkLex(source, expectedTokenKinds, expectedTokenLengths)
+  }
+
+  func testLexInvalidFloat() {
+    let source = "1.25efail"
+    let expectedTokenKinds: [TokenKind] = [.invalidFloatLiteral, .identifier, .eof]
+    let expectedTokenLengths = [5, 4, 0]
+    checkLex(source, expectedTokenKinds, expectedTokenLengths)
+  }
+
+  // MARK: Test lexing on string literals.
+
+  func testStringLiteral() {
+    let source = "\"meow\""
+    let expectedTokenKinds: [TokenKind] = [.stringLiteral, .eof]
+    let expectedTokenLengths = [6, 0]
+    checkLex(source, expectedTokenKinds, expectedTokenLengths)
+  }
+
+  func testLexStringLiteralWithAlternativeQuotes() {
+    let source = "'woof'"
+    let expectedTokenKinds: [TokenKind] = [.stringLiteral, .eof]
+    let expectedTokenLengths = [6, 0]
+    checkLex(source, expectedTokenKinds, expectedTokenLengths)
+  }
+
+  func testLexMultilineStringLiteral() {
+    let source = "\"\"\"She said\n'Haha!'\"\"\""
+    let expectedTokenKinds: [TokenKind] = [.multilineStringLiteral, .eof]
+    let expectedTokenLengths = [22, 0]
+    checkLex(source, expectedTokenKinds, expectedTokenLengths)
+  }
+
+  func testLexMultilineStringLiteral2() {
+    let source = "\"\"\"She said\n\"Haha!\" \"\"\""
+    let expectedTokenKinds: [TokenKind] = [.multilineStringLiteral, .eof]
+    let expectedTokenLengths = [23, 0]
+    checkLex(source, expectedTokenKinds, expectedTokenLengths)
+  }
+
+  func testLexInterpolatedString() {
+    let source = "\"An \\(interpolated) value\""
+    let expectedTokenKinds: [TokenKind] = [.interpolatedStringLiteral, .eof]
+    let expectedTokenLengths = [26, 0]
+    checkLex(source, expectedTokenKinds, expectedTokenLengths)
+  }
+
+  func testLexMultilineInterpolatedString() {
+    let source = "\"\"\"Another \\(interpolated)\n value\"\"\""
+    let expectedTokenKinds: [TokenKind] = [.multilineInterpolatedStringLiteral, .eof]
+    let expectedTokenLengths = [36, 0]
+    checkLex(source, expectedTokenKinds, expectedTokenLengths)
+  }
+
+  func testLexBrokenStringLiteral1() {
+    let source = "\"meow\0"
+    let expectedTokenKinds: [TokenKind] = [.unterminatedStringLiteral, .eof]
+    let expectedTokenLengths = [6, 0]
+    checkLex(source, expectedTokenKinds, expectedTokenLengths)
+  }
+
+  func testLexBrokenStringLiteral2() {
+    let source = "\"\\meow\0"
+    let expectedTokenKinds: [TokenKind] = [.unterminatedStringLiteral, .eof]
+    let expectedTokenLengths = [7, 0]
+    checkLex(source, expectedTokenKinds, expectedTokenLengths)
+  }
+
+  func testLexBrokenStringLiteral3() {
+    let source = "\"\"\"Some unterminated\n multiline string\"\""
+    let expectedTokenKinds: [TokenKind] = [.unterminatedStringLiteral, .eof]
+    let expectedTokenLengths = [40, 0]
+    checkLex(source, expectedTokenKinds, expectedTokenLengths)
+  }
+
+  func testLexStringLiteralWithNull() {
+    let source = "\"\0\""
+    let expectedTokenKinds: [TokenKind] = [.stringLiteral, .eof]
+    let expectedTokenLengths = [3, 0]
+    checkLex(source, expectedTokenKinds, expectedTokenLengths)
+  }
+
+  // MARK: Test lexing on punctuation.
+
+  func testLexNewline() {
+    let source = "a\nb"
+    let expectedTokenKinds: [TokenKind] = [.identifier, .newline, .identifier, .eof]
+    let exptectedTokenLengths = [1, 1, 1, 0]
+    checkLex(source, expectedTokenKinds, exptectedTokenLengths)
+  }
+
+  func testLexSemicolon() {
+    let source = "let a = 0; b = 1"
+    let expectedTokenKinds: [TokenKind] = [
+      .let, .identifier, .equal, .integerLiteral, .semicolon, .identifier, .equal, .integerLiteral,
+      .eof
+    ]
+    let exptectedTokenLengths = [3, 1, 1, 1, 1, 1, 1, 1, 0]
+    checkLex(source, expectedTokenKinds, exptectedTokenLengths)
+  }
+
+  func testLexAt() {
+    let source = "@id"
+    let expectedTokenKinds: [TokenKind] = [.at, .identifier, .eof]
+    let exptectedTokenLengths = [1, 2, 0]
+    checkLex(source, expectedTokenKinds, exptectedTokenLengths)
+  }
+
+  func testLexParentheses() {
+    let source = "(a + b)"
+    let expectedTokenKinds: [TokenKind] = [
+      .leftParenthesis, .identifier, .infixOperator, .identifier, .rightParenthesis, .eof
+    ]
+    let expectedTokenLengths = [1, 1, 1, 1, 1, 0]
+    checkLex(source, expectedTokenKinds, expectedTokenLengths)
+  }
+
+  func testLexBraces() {
+    let source = "{\na\n}"
+    let expectedTokenKinds: [TokenKind] = [
+      .leftBrace, .newline, .identifier, .newline, .rightBrace, .eof
+    ]
+    let expectedTokenLengths = [1, 1, 1, 1, 1, 0]
+    checkLex(source, expectedTokenKinds, expectedTokenLengths)
+  }
+
+  func testLexBrackets() {
+    let source = "[1, 2, 3]"
+    let expectedTokenKinds: [TokenKind] = [
+      .leftBracket, .integerLiteral, .comma, .integerLiteral, .comma, .integerLiteral,
+      .rightBracket, .eof
+    ]
+    let expectedTokenLengths = [1, 1, 1, 1, 1, 1, 1, 0]
+    checkLex(source, expectedTokenKinds, expectedTokenLengths)
+  }
+
+  func testLexComma() {
+    let source = "(a, b)"
+    let expectedTokenKinds: [TokenKind] = [
+      .leftParenthesis, .identifier, .comma, .identifier, .rightParenthesis, .eof
+    ]
+    let expectedTokenLengths = [1, 1, 1, 1, 1, 0]
+    checkLex(source, expectedTokenKinds, expectedTokenLengths)
+  }
+
+  func testLexColon() {
+    let source = "let a: Int"
+    let expectedTokenKinds: [TokenKind] = [
+      .let, .identifier, .colon, .identifier, .eof
+    ]
+    let expectedTokenLengths = [3, 1, 1, 3, 0]
+    checkLex(source, expectedTokenKinds, expectedTokenLengths)
+  }
+
+  func testLexBackslash() {
+    let source = "\\"
+    let expectedTokenKinds: [TokenKind] = [.backslash, .eof]
+    let expectedTokenLengths = [1, 0]
+    checkLex(source, expectedTokenKinds, expectedTokenLengths)
+  }
+
+}

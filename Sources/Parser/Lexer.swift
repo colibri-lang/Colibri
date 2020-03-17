@@ -86,10 +86,12 @@ public struct Lexer {
   /// - Parameter offset: The offset to peek at from the current index.
   /// - Returns: The character 'offset' away from the one at the lexer's current index.
   internal func peek(at offset: Int = 1) -> UnicodeScalar? {
-    let peekIndex = charStream.index(charIndex, offsetBy: offset)
-    return peekIndex < charStream.endIndex
-      ? charStream[peekIndex]
-      : nil
+    if let peekIndex = charStream.index(charIndex,
+                                        offsetBy: offset,
+                                        limitedBy: charStream.index(before: charStream.endIndex)) {
+      return charStream[peekIndex]
+    }
+    return nil
   }
   
   /// Create a range from some location to the one currently being pointed to by the lexer.

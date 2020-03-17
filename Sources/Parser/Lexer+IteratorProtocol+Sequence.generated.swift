@@ -4,13 +4,14 @@
 import Foundation
 
 extension Lexer: IteratorProtocol, Sequence {
+
   /// Check if an operator at some index in the lexer's stream is left bound.
   ///
   /// - Parameter index: The index of the operator character.
   /// - Returns: A boolean value indicating whether the operator character at the input index is
   ///     left bound or not.
   private func isLeftBound(index: String.UnicodeScalarView.Index) -> Bool {
-    if charIndex <= charStream.startIndex {
+    if index <= charStream.startIndex {
       return false
     }
 
@@ -40,7 +41,7 @@ extension Lexer: IteratorProtocol, Sequence {
   /// - Returns: A boolean value indicating whether the operator character at the input index is
   ///     right bound or not.
   private func isRightBound(index: String.UnicodeScalarView.Index) -> Bool {
-    if charIndex >= charStream.endIndex {
+    if index >= charStream.endIndex {
       return false
     }
 
@@ -51,12 +52,6 @@ extension Lexer: IteratorProtocol, Sequence {
     // operator is not right bound.
     if " \n\t)]},;:".unicodeScalars.contains(nextChar) {
       return false
-    }
-
-    // Prefer the '^' in "x^.y" to be a postfix op, not binary, but the '^' in
-    // "^.y" to be a prefix op, not binary.
-    if nextChar == "." {
-      return !isLeftBound(index: charIndex)
     }
 
     if nextChar == "/" {
@@ -71,10 +66,15 @@ extension Lexer: IteratorProtocol, Sequence {
 
   /// Lex an operator identifier.
   private mutating func lexOperatorIdentifier() -> Token {
-    let tokenStart = currentChar
-    let tokenStartIndex = charIndex
     let startLocation = sourceLocation
+    guard let tokenStart = currentChar else {
+      defer { depleted = true }
+      return Token(kind: .eof, range: range(from: startLocation))
+    }
+    assert(isOperatorHead(tokenStart), "The start of an operator must be a valid operator head")
 
+    let tokenStartIndex = charIndex
+    var tokenEndIndex = charIndex
     while let char = currentChar, isOperatorChar(char) {
       // '.' cannot appear in the middle of an operator unless the operator started with a '.'.
       if char == "." && tokenStart != "." {
@@ -86,16 +86,23 @@ extension Lexer: IteratorProtocol, Sequence {
         break
       }
 
+      tokenEndIndex = charIndex
       skip()
     }
 
     // Decide between the infix, prefix or postfix cases.
     // It's infix if either both sides are bound or both sides are not.
-    // Otherwise, it's postfix if left-bound and prefix if right-bound.
+    // Otherwise, it's postfix if left-bound and prefix if rßight-bound.
     let leftBound = isLeftBound(index: tokenStartIndex)
-    let rightBound = isRightBound(index: charIndex)
+    var rightBound = isRightBound(index: tokenEndIndex)
 
-    let operatorIdentifier = String(charStream[tokenStartIndex ... charIndex])
+    // Prefer the '^' in "x^.y" to be a postfix op, not binary, but the '^' in
+    // "^.y" to be a prefix op, not binary.
+    if currentChar == "." {
+      rightBound = !leftBound
+    }
+
+    let operatorIdentifier = String(charStream[tokenStartIndex ..< charIndex])
 
     // Match various reserved words.
     switch operatorIdentifier {
@@ -152,16 +159,15 @@ extension Lexer: IteratorProtocol, Sequence {
     let startLocation = sourceLocation
 
     // Skip the first '`' of the escaped identifier.
+    assert(currentChar == "`", "The start of an escaped identifier must be a '`'")
     skip()
 
-    if let char = currentChar, !isAlphanumericOrUnderscore(char) {
+    if let char = currentChar, !isLetterOrUnderscore(char) {
       // The token is a backtick punctuation token.
       return Token(kind: .backtick, range: range(from: startLocation))
     }
 
-    // Skip the first character of the escaped identifier.
-    skip()
-    skip(while: { isAlphanumericOrUnderscore($0) || isDigit($0) })
+    skip(while: { isAlphanumericOrUnderscore($0) })
 
     if currentChar != "`" {
       return Token(kind: .unterminatedEscapedIdentifier, range: range(from: startLocation))
@@ -176,21 +182,24 @@ extension Lexer: IteratorProtocol, Sequence {
   private mutating func lexDollarIdentifier() -> Token {
     let startLocation = sourceLocation
 
-    // Consume the '$' at the start of the token.
+    // Skip the '$' at the start of the token.
+    assert(currentChar == "$", "The start of a $-identifier must be a '$'")
     skip()
+    var startIsDigit = false
+    if let char = currentChar, isDigit(char) {
+      startIsDigit = true
+    }
 
-    var isAllDigits = true
     var identifier = ""
     while true {
       guard let char = currentChar else { break }
 
-      if isAlphanumericOrUnderscore(char) {
-        isAllDigits = false
-      } else if !isDigit(char) {
+      if startIsDigit && !isDigit(char) || !isAlphanumericOrUnderscore(char) {
         break
       }
 
       identifier += String(char)
+      skip()
     }
 
     // A '$' alone is not a valid token.
@@ -198,21 +207,91 @@ extension Lexer: IteratorProtocol, Sequence {
       return Token(kind: .unknown, range: range(from: startLocation))
     }
 
-    if !isAllDigits {
-      return Token(kind: .identifier, range: range(from: startLocation))
-    } else {
+    if startIsDigit {
       return Token(kind: .dollarIdentifier, range: range(from: startLocation))
+    } else {
+      return Token(kind: .identifier, range: range(from: startLocation))
     }
+  }
+
+  /// Lex a token starting with a '#'.
+  private mutating func lexHash() -> Token {
+    let startLocation = sourceLocation
+    guard let startingChar = currentChar else {
+      defer { depleted = true }
+      return Token(kind: .eof, range: range(from: startLocation))
+    }
+    assert(startingChar == "#", "Expected a '#' at the start of the token")
+
+    // Skip the starting '#' of the token.
+    skip()
+
+    guard let char = currentChar else {
+      return Token(kind: .pound, range: range(from: startLocation))
+    }
+    if !isLetterOrUnderscore(char) {
+      return Token(kind: .pound, range: range(from: startLocation))
+    }
+
+    let identifier = "#" + String(consume(while: isAlphanumericOrUnderscore))
+    let tokenKind: TokenKind
+
+    switch identifier {
+    case "#available":
+      tokenKind = ._available
+    case "#colorLiteral":
+      tokenKind = ._colorLiteral
+    case "#column":
+      tokenKind = ._column
+    case "#else":
+      tokenKind = ._else
+    case "#elseif":
+      tokenKind = ._elseif
+    case "#endif":
+      tokenKind = ._endif
+    case "#error":
+      tokenKind = ._error
+    case "#file":
+      tokenKind = ._file
+    case "#fileLiteral":
+      tokenKind = ._fileLiteral
+    case "#function":
+      tokenKind = ._function
+    case "#if":
+      tokenKind = ._if
+    case "#imageLiteral":
+      tokenKind = ._imageLiteral
+    case "#line":
+      tokenKind = ._line
+    case "#selector":
+      tokenKind = ._selector
+    case "#sourceLocation":
+      tokenKind = ._sourceLocation
+    case "#warning":
+      tokenKind = ._warning
+    default:
+      tokenKind = .unknown
+    }
+
+    return Token(kind: tokenKind, range: range(from: startLocation))
   }
 
   /// Lex an identifier or a keyword.
   private mutating func lexIdentifier() -> Token {
     let startLocation = sourceLocation
 
-    let identifier = String(consume(while: { isAlphanumericOrUnderscore($0) || isDigit($0) }))
+    guard let char = currentChar else {
+      defer { depleted = true }
+      return Token(kind: .eof, range: range(from: startLocation))
+    }
+    assert(isLetterOrUnderscore(char), "The start of an identifier must be a letter or underscore")
+
+    let identifier = String(consume(while: { isAlphanumericOrUnderscore($0) }))
     let tokenKind: TokenKind
 
     switch identifier {
+    case "_":
+      tokenKind = .underscore
     case "associatedtype":
       tokenKind = .associatedtype
     case "class":
@@ -319,38 +398,6 @@ extension Lexer: IteratorProtocol, Sequence {
       tokenKind = .true
     case "try":
       tokenKind = .try
-    case "#available":
-      tokenKind = ._available
-    case "#colorLiteral":
-      tokenKind = ._colorLiteral
-    case "#column":
-      tokenKind = ._column
-    case "#else":
-      tokenKind = ._else
-    case "#elseif":
-      tokenKind = ._elseif
-    case "#endif":
-      tokenKind = ._endif
-    case "#error":
-      tokenKind = ._error
-    case "#file":
-      tokenKind = ._file
-    case "#fileLiteral":
-      tokenKind = ._fileLiteral
-    case "#function":
-      tokenKind = ._function
-    case "#if":
-      tokenKind = ._if
-    case "#imageLiteral":
-      tokenKind = ._imageLiteral
-    case "#line":
-      tokenKind = ._line
-    case "#selector":
-      tokenKind = ._selector
-    case "#sourceLocation":
-      tokenKind = ._sourceLocation
-    case "#warning":
-      tokenKind = ._warning
     case "associativity":
       tokenKind = .associativity
     case "convenience":
@@ -417,30 +464,36 @@ extension Lexer: IteratorProtocol, Sequence {
   /// Lex an integer or floating point literal.
   private mutating func lexNumberLiteral() -> Token {
     let startLocation = sourceLocation
+    guard let char = currentChar else {
+      defer { depleted = true }
+      return Token(kind: .eof, range: range(from: startLocation))
+    }
+    assert(isDigit(char), "The start of a number literal must be a number")
 
-    let char = currentChar
     let nextChar = peek()
 
     // Lex a hexadecimal number.
     if char == "0", nextChar == "x" {
-      skip(while: { isDigit($0) || "ABCDEF".unicodeScalars.contains($0) || $0 == "_" })
+      skip(while: { isDigit($0) || "ABCDEFabcdef_".unicodeScalars.contains($0) })
       return Token(kind: .integerLiteral, range: range(from: startLocation))
     }
 
     // Lex an octal number.
     if char == "0", nextChar == "o" {
-      skip(while: { "01234567".unicodeScalars.contains($0) || $0 == "_" })
+      skip(while: { "01234567_".unicodeScalars.contains($0) })
       return Token(kind: .integerLiteral, range: range(from: startLocation))
     }
 
     // Lex a binary number.
     if char == "0", nextChar == "b" {
-      skip(while: { "01".unicodeScalars.contains($0) || $0 == "_" })
+      skip(while: { "01_".unicodeScalars.contains($0) })
       return Token(kind: .integerLiteral, range: range(from: startLocation))
     }
 
+    // Lex a decimal number.
     skip(while: { isDigit($0) || $0 == "_" })
 
+    var tokenKind: TokenKind = .integerLiteral
     if currentChar == "." {
       // 'x.0.1' is sub-tuple access, not x.float_literal.
       if let nextChar = peek(), !isDigit(nextChar) || peek(at: 2) == "." {
@@ -448,44 +501,51 @@ extension Lexer: IteratorProtocol, Sequence {
       }
 
       // Lex any digits after the decimal point.
+      tokenKind = .floatLiteral
+      skip()
       skip(while: { isDigit($0) || $0 == "_" })
-
-      // Lex exponent.
-      if currentChar == "e" || currentChar == "E" {
-        // Skip the 'e' or 'E'.
-        skip()
-
-        // Skip the sign.
-        if currentChar == "+" || currentChar == "-" {
-          skip()
-        }
-
-        // The exponent must start with a digit.
-        if let char = currentChar, !isDigit(char) {
-          return Token(kind: .invalidFloatLiteral, range: range(from: startLocation))
-        }
-
-        skip(while: { isDigit($0) || $0 == "_" })
-
-        return Token(kind: .floatLiteral, range: range(from: startLocation))
-      }
     }
 
-    return Token(kind: .integerLiteral, range: range(from: startLocation))
+    // Lex the exponent.
+    if currentChar == "e" || currentChar == "E" {
+      // Skip the 'e' or 'E'.
+      skip()
+
+      // Skip the sign.
+      if currentChar == "+" || currentChar == "-" {
+        skip()
+      }
+
+      // The exponent must start with a digit.
+      if let char = currentChar, !isDigit(char) {
+        return Token(kind: .invalidFloatLiteral, range: range(from: startLocation))
+      }
+      tokenKind = .floatLiteral
+
+      skip(while: { isDigit($0) || $0 == "_" })
+    }
+
+    return Token(kind: tokenKind, range: range(from: startLocation))
   }
 
   /// Lex a string literal.
   private mutating func lexStringLiteral() -> Token {
     let startLocation = sourceLocation
+    guard let startingQuote = currentChar else {
+      defer { depleted = true }
+      return Token(kind: .eof, range: range(from: startLocation))
+    }
+    assert(
+      startingQuote == "'" || startingQuote == "\"",
+      "The start of a string literal must be a quote"
+    )
     var isMultiline = false
 
     // Consume the first '"' or "'" of the string.
-    let startingQuote = currentChar
     skip()
 
     // Consume the two other '"' or "'" if the string is multiline.
-    if let nextChar = peek(), nextChar == startingQuote,
-       let charAfter = peek(at: 2), charAfter == startingQuote {
+    if currentChar == startingQuote, peek() == startingQuote {
       skip(2)
       isMultiline = true
     }
@@ -651,9 +711,12 @@ extension Lexer: IteratorProtocol, Sequence {
     case "`":
       return lexEscapedIdentifier()
 
+    case "#":
+      return lexHash()
+
     default:
       // MARK: Identifiers and keywords.
-      if isAlphanumericOrUnderscore(char) {
+      if isLetterOrUnderscore(char) {
         return lexIdentifier()
       }
 
@@ -682,6 +745,11 @@ extension Lexer: IteratorProtocol, Sequence {
 
 
 // MARK: Helper functions.
+
+/// Check if a character is a letter or an underscore.
+private func isLetterOrUnderscore(_ char: UnicodeScalar) -> Bool {
+  return CharacterSet.letters.contains(char) || char == "_"
+}
 
 /// Check whether a character is a white space.
 private func isWhiteSpace(_ char: UnicodeScalar) -> Bool {
@@ -722,7 +790,7 @@ private let operatorHeadScalars = operatorHeadRanges.reduce(
 )
   .union([0x00b6, 0x00bb, 0x00bf, 0x00d7, 0x00f7, 0x3030]
   .compactMap( UnicodeScalar.init ))
-  .union(Set<UnicodeScalar>("/=-+!*%<>&|^~?".unicodeScalars))
+  .union(Set<UnicodeScalar>("/=-+!*%<>&|^~?.".unicodeScalars))
 
 /// Check whether a character is an operator head.
 private func isOperatorHead(_ char: UnicodeScalar) -> Bool {
