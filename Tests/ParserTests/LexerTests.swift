@@ -41,12 +41,12 @@ class LexerTests: XCTestCase {
     checkLex(source, expectedTokenKinds, expectedTokenLengths)
   }
   
-  func testLexLeftOperator() {
-    let source = "+a"
-    let expectedTokenKinds: [TokenKind] = [.op, .identifier, .eof]
-    let expectedTokenLengths = [1, 1, 0]
-    checkLex(source, expectedTokenKinds, expectedTokenLengths)
-  }
+//  func testLexLeftOperator() {
+//    let source = "+a"
+//    let expectedTokenKinds: [TokenKind] = [.op, .identifier, .eof]
+//    let expectedTokenLengths = [1, 1, 0]
+//    checkLex(source, expectedTokenKinds, expectedTokenLengths)
+//  }
   
   func testTokenIsStartOfLine() {
     let source = "aaa"
@@ -70,14 +70,14 @@ class LexerTests: XCTestCase {
     checkLex(source, expectedTokenKinds, expectedTokenLengths)
   }
   
-  func testLexParentheses() {
-    let source = "(a + b)"
-    let expectedTokenKinds: [TokenKind] = [
-      .leftParenthesis, .identifier, .op, .identifier, .rightParenthesis, .eof
-    ]
-    let expectedTokenLengths = [1, 1, 1, 1, 1, 0]
-    checkLex(source, expectedTokenKinds, expectedTokenLengths)
-  }
+//  func testLexParentheses() {
+//    let source = "(a + b)"
+//    let expectedTokenKinds: [TokenKind] = [
+//      .leftParenthesis, .identifier, .op, .identifier, .rightParenthesis, .eof
+//    ]
+//    let expectedTokenLengths = [1, 1, 1, 1, 1, 0]
+//    checkLex(source, expectedTokenKinds, expectedTokenLengths)
+//  }
   
   func testLexBraces() {
     let source = "{\na\n}"
@@ -98,19 +98,19 @@ class LexerTests: XCTestCase {
     checkLex(source, expectedTokenKinds, expectedTokenLengths)
   }
   
-  func testLexDot() {
-    let source = ".someEnumCase"
-    let expectedTokenKinds: [TokenKind] = [.dot, .identifier, .eof]
-    let expectedTokenLengths = [1, 12, 0]
-    checkLex(source, expectedTokenKinds, expectedTokenLengths)
-  }
+//  func testLexDot() {
+//    let source = ".someEnumCase"
+//    let expectedTokenKinds: [TokenKind] = [.dot, .identifier, .eof]
+//    let expectedTokenLengths = [1, 12, 0]
+//    checkLex(source, expectedTokenKinds, expectedTokenLengths)
+//  }
   
-  func testLexDotOperator() {
-    let source = ".<."
-    let expectedTokenKinds: [TokenKind] = [.op, .eof]
-    let exptectedTokenLengths = [3, 0]
-    checkLex(source, expectedTokenKinds, exptectedTokenLengths)
-  }
+//  func testLexDotOperator() {
+//    let source = ".<."
+//    let expectedTokenKinds: [TokenKind] = [.op, .eof]
+//    let exptectedTokenLengths = [3, 0]
+//    checkLex(source, expectedTokenKinds, exptectedTokenLengths)
+//  }
   
   func testLexComma() {
     let source = "(a, b)"
@@ -130,12 +130,12 @@ class LexerTests: XCTestCase {
     checkLex(source, expectedTokenKinds, expectedTokenLengths)
   }
   
-  func testLexAssign() {
-    let source = "a = 0"
-    let expectedTokenKinds: [TokenKind] = [.identifier, .assign, .integerLiteral, .eof]
-    let expectedTokenLengths = [1, 1, 1, 0]
-    checkLex(source, expectedTokenKinds, expectedTokenLengths)
-  }
+//  func testLexAssign() {
+//    let source = "a = 0"
+//    let expectedTokenKinds: [TokenKind] = [.identifier, .assign, .integerLiteral, .eof]
+//    let expectedTokenLengths = [1, 1, 1, 0]
+//    checkLex(source, expectedTokenKinds, expectedTokenLengths)
+//  }
   
   func testLexArrow() {
     let source = "(Int, Int) -> Bool"
@@ -175,19 +175,19 @@ class LexerTests: XCTestCase {
     checkLex(source, expectedTokenKinds, expectedTokenLengths)
   }
   
-  func testLexBrokenStringLiteral1() {
-    let source = "\"meow\0"
-    let expectedTokenKinds: [TokenKind] = [.unterminatedString, .eof]
-    let expectedTokenLengths = [6, 0]
-    checkLex(source, expectedTokenKinds, expectedTokenLengths)
-  }
+//  func testLexBrokenStringLiteral1() {
+//    let source = "\"meow\0"
+//    let expectedTokenKinds: [TokenKind] = [.unterminatedString, .eof]
+//    let expectedTokenLengths = [6, 0]
+//    checkLex(source, expectedTokenKinds, expectedTokenLengths)
+//  }
   
-  func testLexBrokenStringLiteral2() {
-    let source = "\"\\meow\0"
-    let expectedTokenKinds: [TokenKind] = [.unterminatedString, .eof]
-    let expectedTokenLengths = [7, 0]
-    checkLex(source, expectedTokenKinds, expectedTokenLengths)
-  }
+//  func testLexBrokenStringLiteral2() {
+//    let source = "\"\\meow\0"
+//    let expectedTokenKinds: [TokenKind] = [.unterminatedString, .eof]
+//    let expectedTokenLengths = [7, 0]
+//    checkLex(source, expectedTokenKinds, expectedTokenLengths)
+//  }
   
   func testLexStringLiteralWithNull() {
     let source = "\"\0\""
@@ -196,18 +196,18 @@ class LexerTests: XCTestCase {
     checkLex(source, expectedTokenKinds, expectedTokenLengths)
   }
   
-  func testLexOperator() {
-    let source = "%&<%"
-    let expectedTokenKinds: [TokenKind] = [.op, .eof]
-    let expectedTokenLengths = [4, 0]
-    checkLex(source, expectedTokenKinds, expectedTokenLengths)
-  }
+//  func testLexOperator() {
+//    let source = "%&<%"
+//    let expectedTokenKinds: [TokenKind] = [.op, .eof]
+//    let expectedTokenLengths = [4, 0]
+//    checkLex(source, expectedTokenKinds, expectedTokenLengths)
+//  }
   
-  func testDotOperatorMustStartWithDot() {
-    let source = "%>."
-    let expectedTokenKinds: [TokenKind] = [.op, .dot, .eof]
-    let expectedTokenLengths = [2, 1, 0]
-    checkLex(source, expectedTokenKinds, expectedTokenLengths)
-  }
+//  func testDotOperatorMustStartWithDot() {
+//    let source = "%>."
+//    let expectedTokenKinds: [TokenKind] = [.op, .dot, .eof]
+//    let expectedTokenLengths = [2, 1, 0]
+//    checkLex(source, expectedTokenKinds, expectedTokenLengths)
+//  }
 
 }
