@@ -15,6 +15,8 @@ public enum TokenKind: UInt64 {
   // MARK: Identifiers
   
   case identifier
+  case escapedIdentifier
+  case dollarIdentifier
   
   // MARK: Pattern keywords
   
@@ -130,6 +132,8 @@ public enum TokenKind: UInt64 {
   case unowned
   case weak
   case willset
+  case owned
+  case shared
   // sourcery:end
   
   // MARK: Punctuation
@@ -140,14 +144,13 @@ public enum TokenKind: UInt64 {
   case rightBrace
   case leftBracket
   case rightBracket
-  case dot
   case comma
   case colon
-  case assign
   case at
   case pound
   case arrow
   case backtick
+  case backslash
 
   // MARK: Delimiters
   
@@ -160,15 +163,41 @@ public enum TokenKind: UInt64 {
   case integerLiteral
   case floatLiteral
   case stringLiteral
+  case multilineStringLiteral
+  case interpolatedStringLiteral
+  case multilineInterpolatedStringLiteral
   
   // MARK: Operators
   
-  case op
+  case equal
+  
+  case period
+  case periodPrefix
+  
+  case prefixOperator
+  case infixOperator
+  case postfixOperator
+  
+  case exclamationPostfix
+  
+  case questionPostfix
+  case questionInfix
+  
+  case ampersandPrefix
   
   // MARK: Error tokens
   
+  case unaryEqual
+  
+  case unterminatedEscapedIdentifier
+  
+  case unexpectedCommentEnd
   case unterminatedComment
-  case unterminatedString
+  
+  case invalidFloatLiteral
+  
+  case unterminatedStringLiteral
+  
   case unknown
 
 }
