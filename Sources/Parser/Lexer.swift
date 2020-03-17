@@ -21,7 +21,7 @@ public struct Lexer {
       : nil
   }
   
-  public init(translationUnit: TranslationUnit) throws {
+  public init(translationUnit: TranslationUnit) {
     charStream = translationUnit.source.unicodeScalars
     charIndex = charStream.startIndex
     sourceLocation = SourceLocation(translationUnit: translationUnit)
@@ -55,6 +55,16 @@ public struct Lexer {
     while let char = currentChar, predicate(char) {
       skip()
     }
+  }
+    
+  /// Consume 'count' characters from the lexer's stream.
+  ///
+  /// - Parameter count: The number of characters to consume in the lexer's stream.
+  /// - Returns: A string subsequence containing the consumed characters.
+  internal mutating func consume(_ count: Int = 1) -> String.UnicodeScalarView.SubSequence {
+    let startIndex = charIndex
+    skip(count)
+    return charStream[startIndex ..< charIndex]
   }
   
   /// Consume characters from the lexer's stream while some predicate is true and return them.

@@ -1,5 +1,4 @@
 import AST
-import Utils
 
 /// A lexical token in a Colibri source.
 ///
