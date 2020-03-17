@@ -19,7 +19,7 @@ public struct ExprParser: Parser {
     // expressions are parsed into the proper AST.
     while true {
       switch stream.peek().kind {
-      case .assign:
+      case .equal:
         // Parse the source expression after the assignment operator.
         let assignTok = stream.consume()
         guard let rightExpr = parse(stream: &stream, diagnostics: &diagnostics)
@@ -49,7 +49,7 @@ public struct PrimaryExprParser: Parser {
 
   public func parse(stream: inout TokenStream, diagnostics: inout [Diagnostic]) -> Expr? {
     switch stream.peek().kind {
-    case .identifier, .self, .op:
+    case .identifier, .self, .prefixOperator, .postfixOperator, .infixOperator:
       let identTok = stream.consume()
       return UnresolvedDeclRefExpr(name: identTok.value!, range: identTok.range)
 

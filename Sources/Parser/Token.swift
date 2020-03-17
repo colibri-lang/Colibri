@@ -32,7 +32,9 @@ public struct Token {
 
   /// Whether this token is an operator.
   public var isOperator: Bool {
-    return (kind == .op)
+    return (kind == .prefixOperator)
+        || (kind == .postfixOperator)
+        || (kind == .infixOperator)
   }
 
   /// Whether this token is a keyword.
