@@ -82,10 +82,10 @@ public final class WildcardPattern: Pattern {
 
 }
 
-/// An invalid pattern.
+/// An error pattern.
 ///
 /// This type is used to represent ill-formed ASTs.
-public struct InvalidPattern: Pattern {
+public struct ErrorPattern: Pattern {
 
   public let range: SourceRange?
 

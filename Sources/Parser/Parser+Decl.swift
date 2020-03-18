@@ -17,7 +17,7 @@ public struct PatternBindingDeclParser: Parser {
     }
 
     let pattern = PatternParser.get.parse(stream: &stream, diagnostics: &diagnostics)
-      ?? InvalidPattern(range: stream.peek().range)
+      ?? ErrorPattern(range: stream.peek().range)
 
     // Create the declaration.
     return PatternBindingDecl(letVarKeywordRange: letOrVarTok.range, pattern: pattern)
