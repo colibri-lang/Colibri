@@ -27,6 +27,10 @@ public final class AccessModifier: Node, SourceRepresentable {
     self.range = range
   }
 
+  public func accept<T>(_ transformer: T) -> Node where T: NodeTransformer {
+    transformer.visit(self)
+  }
+
 }
 
 /// A declaration modifier.
@@ -60,6 +64,10 @@ public final class DeclModifier: Decl, SourceRepresentable {
     self.range = range
   }
 
+  public func accept<T>(_ transformer: T) -> Node where T: NodeTransformer {
+    transformer.visit(self)
+  }
+
 }
 
 /// A declaration that consists of a pattern and an optional initializer for the variables declared
@@ -77,10 +85,10 @@ public final class PatternBindingDecl: Decl, SourceRepresentable {
   public let letVarKeywordRange: SourceRange
 
   /// The pattern being bound.
-  public let pattern: Pattern
+  public var pattern: Pattern
 
   /// The initializer for the variables declared by the pattern.
-  public let initializer: Expr?
+  public var initializer: Expr?
 
   public var range: SourceRange? {
     let start = letVarKeywordRange.lowerBound
@@ -96,6 +104,10 @@ public final class PatternBindingDecl: Decl, SourceRepresentable {
     self.letVarKeywordRange = letVarKeywordRange
     self.pattern = pattern
     self.initializer = initializer
+  }
+
+  public func accept<T>(_ transformer: T) -> Node where T: NodeTransformer {
+    transformer.visit(self)
   }
 
 }
@@ -114,6 +126,10 @@ public final class VarDecl: Decl, SourceRepresentable {
   public init(name: String, range: SourceRange?) {
     self.name = name
     self.range = range
+  }
+
+  public func accept<T>(_ transformer: T) -> Node where T: NodeTransformer {
+    transformer.visit(self)
   }
 
 }
@@ -138,10 +154,10 @@ public final class FuncDecl: Decl, SourceRepresentable {
   }
 
   /// the function's signature.
-  public let signature: FuncSign
+  public var signature: FuncSign
 
   /// The body of this function declaration.
-  public let body: BraceStmt?
+  public var body: BraceStmt?
 
   public var range: SourceRange?
 
@@ -157,10 +173,14 @@ public final class FuncDecl: Decl, SourceRepresentable {
     self.range = range
   }
 
+  public func accept<T>(_ transformer: T) -> Node where T: NodeTransformer {
+    transformer.visit(self)
+  }
+
 }
 
 /// A function signature.
-public struct FuncSign: Node, SourceRepresentable {
+public final class FuncSign: Node, SourceRepresentable {
 
   /// A kind of throwing behavior.
   public enum ThrowingBehavior {
@@ -172,10 +192,10 @@ public struct FuncSign: Node, SourceRepresentable {
   }
 
   /// The function's parameters.
-  public let parameters: ParamList
+  public var parameters: ParamList
 
   /// The function's return type.
-  public let returnType: TypeLocation?
+  public var returnType: TypeLocation?
 
   /// The function's throwing behavior.
   public let throwingBehavior: ThrowingBehavior
@@ -202,13 +222,17 @@ public struct FuncSign: Node, SourceRepresentable {
     self.throwsKeywordRange = throwsKeywordRange
   }
 
+  public func accept<T>(_ transformer: T) -> Node where T: NodeTransformer {
+    transformer.visit(self)
+  }
+
 }
 
 /// A list of function parameter declarations.
-public struct ParamList: Node, ParenthesizedNode {
+public final class ParamList: Node, ParenthesizedNode {
 
   /// The declarations in this list.
-  public let decls: [ParamDecl]
+  public var decls: [ParamDecl]
 
   public var leftParenthesisRange: SourceRange?
 
@@ -226,6 +250,10 @@ public struct ParamList: Node, ParenthesizedNode {
     self.decls = decls
     self.leftParenthesisRange = leftParenthesisRange
     self.rightParenthesisRange = rightParenthesisRange
+  }
+
+  public func accept<T>(_ transformer: T) -> Node where T: NodeTransformer {
+    transformer.visit(self)
   }
 
 }
@@ -254,7 +282,7 @@ public final class ParamDecl: Decl, SourceRepresentable {
   public let internalName: String?
 
   /// The type location annotating this parameter.
-  public let typeLocation: TypeLocation?
+  public var typeLocation: TypeLocation?
 
   public let range: SourceRange?
 
@@ -270,9 +298,17 @@ public final class ParamDecl: Decl, SourceRepresentable {
     self.range = range
   }
 
+  public func accept<T>(_ transformer: T) -> Node where T: NodeTransformer {
+    transformer.visit(self)
+  }
+
 }
 
 /// An operator declaration.
 public class OperatorDecl: Decl {
+
+  public func accept<T>(_ transformer: T) -> Node where T: NodeTransformer {
+    transformer.visit(self)
+  }
 
 }

@@ -1,4 +1,4 @@
-public protocol TypeLocation: SourceRepresentable {
+public protocol TypeLocation: Node, SourceRepresentable {
 }
 
 /// A an identifer type location.
@@ -12,6 +12,10 @@ public final class IdentTypeLocation: TypeLocation {
   public init(name: String, range: SourceRange?) {
     self.name = name
     self.range = range
+  }
+
+  public func accept<T>(_ transformer: T) -> Node where T: NodeTransformer {
+    transformer.visit(self)
   }
 
 }

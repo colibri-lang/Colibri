@@ -1,14 +1,14 @@
 public protocol Stmt: Node, SourceRepresentable {
 }
 
-public struct BraceStmt: Stmt {
+public final class BraceStmt: Stmt {
 
   /// The statements contained in this scope.
   ///
   /// This array may contain any AST node. This is so that we can parse any kind of expression in a
   /// brace statement before the sema is able to determine which one shouldn't be allowed (e.g.
   /// because they resolve to an unused variable).
-  public let statements: [Node]
+  public var statements: [Node]
 
   public let range: SourceRange?
 
@@ -20,15 +20,19 @@ public struct BraceStmt: Stmt {
     self.range = range
   }
 
+  public func accept<T>(_ transformer: T) -> Node where T: NodeTransformer {
+    transformer.visit(self)
+  }
+
 }
 
-public struct ReturnStmt: Stmt {
+public final class ReturnStmt: Stmt {
 
   /// The source range of the `return` keyword.
   public let returnKeywordRange: SourceRange
 
   /// The returned expression, if present.
-  public let expr: Expr?
+  public var expr: Expr?
 
   /// Whether or not this return statement is implicit.
   public let isImplicit: Bool
@@ -52,6 +56,10 @@ public struct ReturnStmt: Stmt {
     self.returnKeywordRange = returnKeywordRange
     self.expr = expr
     self.isImplicit = isImplicit
+  }
+
+  public func accept<T>(_ transformer: T) -> Node where T: NodeTransformer {
+    transformer.visit(self)
   }
 
 }

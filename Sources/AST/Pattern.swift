@@ -6,10 +6,10 @@ public protocol Pattern: Node, SourceRepresentable {
 public final class TypedPattern: Pattern {
 
   /// The (untyped) sub-pattern.
-  public let subpattern: Pattern
+  public var subpattern: Pattern
 
   /// The type location annotating this pattern.
-  public let annotation: TypeLocation
+  public var annotation: TypeLocation
 
   public var range: SourceRange? {
     guard let lower = subpattern.range ?? annotation.range
@@ -21,6 +21,10 @@ public final class TypedPattern: Pattern {
   public init(subpattern: Pattern, annotation: TypeLocation) {
     self.subpattern = subpattern
     self.annotation = annotation
+  }
+
+  public func accept<T>(_ transformer: T) -> Node where T: NodeTransformer {
+    transformer.visit(self)
   }
 
 }
@@ -39,6 +43,10 @@ public final class NamedPattern: Pattern {
   public init(name: String, range: SourceRange) {
     self.name = name
     self.range = range
+  }
+
+  public func accept<T>(_ transformer: T) -> Node where T: NodeTransformer {
+    transformer.visit(self)
   }
 
 }
@@ -67,6 +75,10 @@ public final class TuplePattern: Pattern, ParenthesizedNode {
     self.rightParenthesisRange = rightParenthesisRange
   }
 
+  public func accept<T>(_ transformer: T) -> Node where T: NodeTransformer {
+    transformer.visit(self)
+  }
+
 }
 
 /// A pattern that matches an arbitrary value, but does not bind it to a name.
@@ -80,6 +92,10 @@ public final class WildcardPattern: Pattern {
     self.range = range
   }
 
+  public func accept<T>(_ transformer: T) -> Node where T: NodeTransformer {
+    transformer.visit(self)
+  }
+
 }
 
 /// An error pattern.
@@ -91,6 +107,10 @@ public struct ErrorPattern: Pattern {
 
   public init(range: SourceRange?) {
     self.range = range
+  }
+
+  public func accept<T>(_ transformer: T) -> Node where T: NodeTransformer {
+    transformer.visit(self)
   }
 
 }

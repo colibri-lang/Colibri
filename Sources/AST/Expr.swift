@@ -3,16 +3,16 @@ public protocol Expr: Node, SourceRepresentable {
 }
 
 /// A value assignment, like `x = y`.
-public struct AssignExpr: Expr {
+public final class AssignExpr: Expr {
 
   /// The source range of the `=` operator.
   public let assignOperatorRange: SourceRange
 
   /// The left part of the assignment (i.e. the expression to which the value is assigned).
-  public let target: Expr
+  public var target: Expr
 
   /// The right part of the assignment (i.e. the value being assigned).
-  public let source: Expr
+  public var source: Expr
 
   public var range: SourceRange? {
     return SourceRange.union(of: [
@@ -30,6 +30,10 @@ public struct AssignExpr: Expr {
     self.assignOperatorRange = assignOperatorRange
     self.target = target
     self.source = source
+  }
+
+  public func accept<T>(_ transformer: T) -> Node where T: NodeTransformer {
+    transformer.visit(self)
   }
 
 }
@@ -50,6 +54,10 @@ public final class UnresolvedDeclRefExpr: Expr {
     self.range = range
   }
 
+  public func accept<T>(_ transformer: T) -> Node where T: NodeTransformer {
+    transformer.visit(self)
+  }
+
 }
 
 /// A `nil` literal.
@@ -59,6 +67,10 @@ public final class NilLiteralExpr: Expr {
 
   public init(range: SourceRange?) {
     self.range = range
+  }
+
+  public func accept<T>(_ transformer: T) -> Node where T: NodeTransformer {
+    transformer.visit(self)
   }
 
 }
@@ -76,6 +88,10 @@ public final class BooleanLiteralExpr: Expr {
     self.range = range
   }
 
+  public func accept<T>(_ transformer: T) -> Node where T: NodeTransformer {
+    transformer.visit(self)
+  }
+
 }
 
 /// An integer literal.
@@ -89,6 +105,10 @@ public final class IntegerLiteralExpr: Expr {
   public init(value: Int, range: SourceRange?) {
     self.value = value
     self.range = range
+  }
+
+  public func accept<T>(_ transformer: T) -> Node where T: NodeTransformer {
+    transformer.visit(self)
   }
 
 }
@@ -106,6 +126,10 @@ public final class FloatLiteralExpr: Expr {
     self.range = range
   }
 
+  public func accept<T>(_ transformer: T) -> Node where T: NodeTransformer {
+    transformer.visit(self)
+  }
+
 }
 
 /// A string literal.
@@ -121,6 +145,10 @@ public final class StringLiteralExpr: Expr {
     self.range = range
   }
 
+  public func accept<T>(_ transformer: T) -> Node where T: NodeTransformer {
+    transformer.visit(self)
+  }
+
 }
 
 /// A magic identifier (e.g. `#file`) which expends out to a literal during SIL generation.
@@ -132,6 +160,10 @@ public final class MagicIdentifierLiteralExpr: Expr {
     self.range = range
   }
 
+  public func accept<T>(_ transformer: T) -> Node where T: NodeTransformer {
+    transformer.visit(self)
+  }
+
 }
 
 /// Represets a semantically erroneaus sub-expression.
@@ -141,6 +173,10 @@ public final class ErrorExpr: Expr {
 
   public init(range: SourceRange?) {
     self.range = range
+  }
+
+  public func accept<T>(_ transformer: T) -> Node where T: NodeTransformer {
+    transformer.visit(self)
   }
 
 }
