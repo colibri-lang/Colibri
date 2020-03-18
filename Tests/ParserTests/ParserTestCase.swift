@@ -9,7 +9,7 @@ extension ParserTestCase {
 
   func tokenize(_ buffer: String) -> TokenStream {
     let unit = TranslationUnit(name: "<test>", source: buffer)
-    return TokenStream(lexer: try! Lexer(translationUnit: unit))
+    return TokenStream(lexer: Lexer(translationUnit: unit))
   }
 
 }

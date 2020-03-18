@@ -18,8 +18,8 @@ class TokenStreamTests: XCTestCase {
 
   override func setUp() {
     let unit = TranslationUnit(name: "<test>", source: source)
-    tokens = Array(try! Lexer(translationUnit: unit))
-    stream = TokenStream(lexer: try! Lexer(translationUnit: unit))
+    tokens = Array(Lexer(translationUnit: unit))
+    stream = TokenStream(lexer: Lexer(translationUnit: unit))
   }
 
   func testFirst() {
