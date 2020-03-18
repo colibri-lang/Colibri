@@ -37,12 +37,6 @@ public struct Token {
         || (kind == .infixOperator)
   }
 
-  /// Whether this token is a keyword.
-  public var isKeyword: Bool {
-    // TODO: Implement me with sourcery!
-    return false
-  }
-
   /// Whether this token is a comment.
   public var isComment: Bool {
     return (kind == .comment)

@@ -1,0 +1,23 @@
+extension Token {
+
+  public var isKeyword: Bool {
+    switch kind {
+    {% for case in type.TokenKind.cases|annotated:"keyword" %}
+    {% if case.name|contains:"init" or case.name|contains:"self" or case.name|contains:"Self" %}
+    case .{{ case.name }}:
+      return true
+    {% else %}
+    case .{{ case.name|replace:"`","" }}:
+      return true
+    {% endif %}
+    {% endfor %}
+    {% for case in type.TokenKind.cases|annotated:"poundkeyword" %}
+    case .{{ case.name }}:
+      return true
+    {% endfor %}
+    default:
+      return false
+    }
+  }
+
+}
