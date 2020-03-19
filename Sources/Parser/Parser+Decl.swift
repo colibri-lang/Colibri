@@ -1,5 +1,31 @@
 import AST
 
+public struct DeclParser: Parser {
+
+  public typealias Element = Decl
+
+  public func parse(stream: inout TokenStream, diagnostics: inout [Diagnostic]) -> Decl? {
+    // TODO: Handle declaration and access modifiers (e.g. static, public, etc.).
+
+    switch stream.peek().kind {
+    case .let, .var:
+      return PatternBindingDeclParser.get.parse(stream: &stream, diagnostics: &diagnostics)
+
+    case .func:
+      return FuncDeclParser.get.parse(stream: &stream, diagnostics: &diagnostics)
+
+    default:
+      diagnostics.append(expectedError.instantiate(
+        at: stream.nextNonCommentToken?.range,
+        with: "let"))
+      return nil
+    }
+  }
+
+  public static let get = DeclParser()
+
+}
+
 public struct PatternBindingDeclParser: Parser {
 
   public typealias Element = PatternBindingDecl
