@@ -1,7 +1,7 @@
 public protocol Stmt: Node, SourceRepresentable {
 }
 
-public final class BraceStmt: Stmt {
+public final class BraceStmt: Stmt, DeclContext {
 
   /// The statements contained in this scope.
   ///
@@ -11,6 +11,10 @@ public final class BraceStmt: Stmt {
   public var statements: [Node]
 
   public let range: SourceRange?
+
+  public weak var parent: DeclContext?
+
+  public var decls: [Decl] = []
 
   public init(
     statements: [Node] = [],

@@ -135,7 +135,7 @@ public final class VarDecl: Decl, SourceRepresentable {
 }
 
 /// A function declaration.
-public final class FuncDecl: Decl, SourceRepresentable {
+public final class FuncDecl: Decl, DeclContext, SourceRepresentable {
 
   /// The function's name.
   ///
@@ -160,6 +160,10 @@ public final class FuncDecl: Decl, SourceRepresentable {
   public var body: BraceStmt?
 
   public var range: SourceRange?
+
+  public weak var parent: DeclContext?
+
+  public var decls: [Decl] = []
 
   public init(
     name: String,
