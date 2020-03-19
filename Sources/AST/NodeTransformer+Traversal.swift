@@ -11,6 +11,10 @@ extension NodeTransformer {
   }
 
   public func visit(_ node: PatternBindingDecl) -> Node {
+    return traverse(node)
+  }
+
+  public func traverse(_ node: PatternBindingDecl) -> Node {
     node.pattern = node.pattern.accept(self) as! Pattern
     node.initializer = node.initializer.map({ child in child.accept(self) as! Expr })
     return node
@@ -21,23 +25,39 @@ extension NodeTransformer {
   }
 
   public func visit(_ node: FuncDecl) -> Node {
+    return traverse(node)
+  }
+
+  public func traverse(_ node: FuncDecl) -> Node {
     node.signature = node.signature.accept(self) as! FuncSign
     node.body = node.body.map({ child in child.accept(self) as! BraceStmt })
     return node
   }
 
   public func visit(_ node: FuncSign) -> Node {
+    return traverse(node)
+  }
+
+  public func traverse(_ node: FuncSign) -> Node {
     node.parameters = node.parameters.accept(self) as! ParamList
     node.returnType = node.returnType.map({ child in child.accept(self) as! TypeLocation })
     return node
   }
 
   public func visit(_ node: ParamList) -> Node {
+    return traverse(node)
+  }
+
+  public func traverse(_ node: ParamList) -> Node {
     node.decls = node.decls.map({ child in child.accept(self) as! ParamDecl })
     return node
   }
 
   public func visit(_ node: ParamDecl) -> Node {
+    return traverse(node)
+  }
+
+  public func traverse(_ node: ParamDecl) -> Node {
     node.typeLocation = node.typeLocation.map({ child in child.accept(self) as! TypeLocation })
     return node
   }
@@ -49,6 +69,10 @@ extension NodeTransformer {
   // MARK: Expressions
 
   public func visit(_ node: AssignExpr) -> Node {
+    return traverse(node)
+  }
+
+  public func traverse(_ node: AssignExpr) -> Node {
     node.source = node.source.accept(self) as! Expr
     node.target = node.target.accept(self) as! Expr
     return node
@@ -89,6 +113,10 @@ extension NodeTransformer {
   // MARK: Patterns
 
   public func visit(_ node: TypedPattern) -> Node {
+    return traverse(node)
+  }
+
+  public func traverse(_ node: TypedPattern) -> Node {
     node.subpattern = node.subpattern.accept(self) as! Pattern
     node.annotation = node.annotation.accept(self) as! TypeLocation
     return node
@@ -99,6 +127,10 @@ extension NodeTransformer {
   }
 
   public func visit(_ node: TuplePattern) -> Node {
+    return traverse(node)
+  }
+
+  public func traverse(_ node: TuplePattern) -> Node {
     node.elements = node.elements.map({ child in child.accept(self) as! Pattern })
     return node
   }
@@ -114,11 +146,19 @@ extension NodeTransformer {
   // MARK: Statements
 
   public func visit(_ node: BraceStmt) -> Node {
+    return traverse(node)
+  }
+
+  public func traverse(_ node: BraceStmt) -> Node {
     node.statements = node.statements.map({ child in child.accept(self) })
     return node
   }
 
   public func visit(_ node: ReturnStmt) -> Node {
+    return traverse(node)
+  }
+
+  public func traverse(_ node: ReturnStmt) -> Node {
     node.expr = node.expr.map({ child in child.accept(self) as! Expr })
     return node
   }
