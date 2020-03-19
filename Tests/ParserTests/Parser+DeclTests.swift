@@ -10,7 +10,8 @@ class FuncDeclParserTests: XCTestCase, ParserTestCase {
     var stream = tokenize("func foo()")
     var diagnostics: [Diagnostic] = []
 
-    let result = FuncDeclParser.get.parse(stream: &stream, diagnostics: &diagnostics)
+    let parser = FuncDeclParser(declContext: Module())
+    let result = parser.parse(stream: &stream, diagnostics: &diagnostics)
     assertThat(diagnostics, .isEmpty)
     assertThat(result, .not(.isNil))
 
@@ -25,7 +26,8 @@ class FuncDeclParserTests: XCTestCase, ParserTestCase {
     var stream = tokenize("func foo(x: Int, y: Int)")
     var diagnostics: [Diagnostic] = []
 
-    let result = FuncDeclParser.get.parse(stream: &stream, diagnostics: &diagnostics)
+    let parser = FuncDeclParser(declContext: Module())
+    let result = parser.parse(stream: &stream, diagnostics: &diagnostics)
     assertThat(diagnostics, .isEmpty)
     assertThat(result, .not(.isNil))
 

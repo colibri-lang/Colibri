@@ -4,15 +4,24 @@ public struct DeclParser: Parser {
 
   public typealias Element = Decl
 
+  /// The declaration context in which the declarations should be parsed.
+  public let declContext: DeclContext
+
+  init(declContext: DeclContext) {
+    self.declContext = declContext
+  }
+
   public func parse(stream: inout TokenStream, diagnostics: inout [Diagnostic]) -> Decl? {
     // TODO: Handle declaration and access modifiers (e.g. static, public, etc.).
 
     switch stream.peek().kind {
     case .let, .var:
-      return PatternBindingDeclParser.get.parse(stream: &stream, diagnostics: &diagnostics)
+      let subparser = PatternBindingDeclParser(declContext: declContext)
+      return subparser.parse(stream: &stream, diagnostics: &diagnostics)
 
     case .func:
-      return FuncDeclParser.get.parse(stream: &stream, diagnostics: &diagnostics)
+      let subparser = FuncDeclParser(declContext: declContext)
+      return subparser.parse(stream: &stream, diagnostics: &diagnostics)
 
     default:
       diagnostics.append(expectedError.instantiate(
@@ -22,13 +31,18 @@ public struct DeclParser: Parser {
     }
   }
 
-  public static let get = DeclParser()
-
 }
 
 public struct PatternBindingDeclParser: Parser {
 
   public typealias Element = PatternBindingDecl
+
+  /// The declaration context in which the declarations should be parsed.
+  public let declContext: DeclContext
+
+  public init(declContext: DeclContext) {
+    self.declContext = declContext
+  }
 
   public func parse(
     stream: inout TokenStream,
@@ -49,14 +63,15 @@ public struct PatternBindingDeclParser: Parser {
     return PatternBindingDecl(letVarKeywordRange: letOrVarTok.range, pattern: pattern)
   }
 
-  public static let get = PatternBindingDeclParser()
-
 }
 
 /// A parser for function declarations.
 public struct FuncDeclParser: Parser {
 
   public typealias Element = FuncDecl
+
+  /// The declaration context in which the declarations should be parsed.
+  public let declContext: DeclContext
 
   /// The sub-parser used to parse function declaration identifiers.
   private let declIdentParser = DeclIdentNameParser(
@@ -67,6 +82,10 @@ public struct FuncDeclParser: Parser {
           || (token.kind == .arrow)
           || (token.value?.starts(with: "<") ?? false)
     })
+
+  public init(declContext: DeclContext) {
+    self.declContext = declContext
+  }
 
   public func parse(stream: inout TokenStream, diagnostics: inout [Diagnostic]) -> FuncDecl? {
     // All function declarations must start with `func`.
@@ -119,14 +138,16 @@ public struct FuncDeclParser: Parser {
     }
 
     let upperRange = body?.range ?? signature.range ?? funcTok.range
-    return FuncDecl(
+    let decl = FuncDecl(
       name: name,
       signature: signature,
       body: body,
       range: funcTok.range.lowerBound ..< upperRange.upperBound)
-  }
 
-  public static let get = FuncDeclParser()
+    // Scope the parsed function declaration within the parser's declaration context.
+    decl.parent = declContext
+    return decl
+  }
 
 }
 
